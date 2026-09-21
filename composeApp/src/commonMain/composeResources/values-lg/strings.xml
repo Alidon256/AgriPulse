@@ -1,0 +1,28 @@
+<resources>
+    <string name="app_name">AgriPulse</string>
+    <string name="tagline">Enkuŋaaniro y\'Abalimi n\'Embeera y\'Obudde</string>
+    <string name="nav_home">Awaka</string>
+    <string name="nav_spaces">Ebibiina</string>
+    <string name="nav_profile">Ebikukwatako</string>
+    <string name="nav_check_in">Okukebera Ebirime</string>
+    <string name="nav_vault">Engule y\'Obulimi</string>
+
+    <string name="daily_check_in_title">Okukebera Ebirime Buli Lunaku</string>
+    <string name="daily_check_in_subtitle">Okukebera amangu kutaasa emmere. Kebera ennimiro yo buli lunaku.</string>
+    <string name="start_scouting">Tandika Okukebera Ennimiro</string>
+
+    <string name="status_optimal">Bikula Bulungi</string>
+    <string name="status_mild_stress">Bikoowemu Kitono</string>
+    <string name="status_high_pest_risk">Ebiwuka Biriko Bingi</string>
+    <string name="status_critical_threat">Kabi ka Maanyi</string>
+
+    <string name="weather_title">Obudde n\'Enkuba</string>
+    <string name="market_title">Emiwendo gy\'Ebirime mu Katale</string>
+    <string name="audio_guides_title">Ladiyo y\'Abalimi</string>
+    <string name="farmer_spaces_title">Ebibiina by\'Abalimi</string>
+    <string name="resilience_vault_title">Engule y\'Obulimi Bwo</string>
+
+    <string name="action_submit">Weereza</string>
+    <string name="action_retry">Ddamu Ogezeeko</string>
+    <string name="action_save">Kaza By\'Olabye</string>
+</resources>

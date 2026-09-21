@@ -1,0 +1,15 @@
+{
+  "projects": {
+    "default": "mindsetpulse-one"
+  },
+  "targets": {
+    "mindsetpulse-one": {
+      "storage": {
+        "default": [
+          "mindsetpulse-one.firebasestorage.app"
+        ]
+      }
+    }
+  },
+  "etags": {}
+}

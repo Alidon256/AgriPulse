@@ -1,0 +1,28 @@
+<resources>
+    <string name="app_name">AgriPulse</string>
+    <string name="tagline">Farmer Climate &amp; Crop Resilience Hub</string>
+    <string name="nav_home">Home</string>
+    <string name="nav_spaces">Spaces</string>
+    <string name="nav_profile">Profile</string>
+    <string name="nav_check_in">Crop Diagnostic</string>
+    <string name="nav_vault">Resilience Vault</string>
+
+    <string name="daily_check_in_title">Daily Crop Health Check-In</string>
+    <string name="daily_check_in_subtitle">Early detection prevents crop loss. Track your field condition daily.</string>
+    <string name="start_scouting">Start Field Scouting</string>
+
+    <string name="status_optimal">Optimal Growth</string>
+    <string name="status_mild_stress">Mild Crop Stress</string>
+    <string name="status_high_pest_risk">High Pest Risk</string>
+    <string name="status_critical_threat">Critical Alert</string>
+
+    <string name="weather_title">Climate &amp; Rainfall Forecast</string>
+    <string name="market_title">Regional Commodity Prices</string>
+    <string name="audio_guides_title">Agricultural Extension Radio</string>
+    <string name="farmer_spaces_title">Farmer Community Hubs</string>
+    <string name="resilience_vault_title">Your Farm Resilience Vault</string>
+
+    <string name="action_submit">Submit Action</string>
+    <string name="action_retry">Retry</string>
+    <string name="action_save">Save Field Observation</string>
+</resources>

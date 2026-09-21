@@ -1,0 +1,28 @@
+<resources>
+    <string name="app_name">AgriPulse</string>
+    <string name="tagline">Plateforme de Résilience Agricole et Climatique</string>
+    <string name="nav_home">Accueil</string>
+    <string name="nav_spaces">Espaces</string>
+    <string name="nav_profile">Profil</string>
+    <string name="nav_check_in">Diagnostic Végétal</string>
+    <string name="nav_vault">Coffre de Résilience</string>
+
+    <string name="daily_check_in_title">Bilan Quotidien des Cultures</string>
+    <string name="daily_check_in_subtitle">La détection précoce prévient les pertes de récolte. Suivez votre parcelle quotidiennement.</string>
+    <string name="start_scouting">Commencer le Dépistage</string>
+
+    <string name="status_optimal">Croissance Optimale</string>
+    <string name="status_mild_stress">Stress Hydrique Léger</string>
+    <string name="status_high_pest_risk">Risque Parasitaire Élevé</string>
+    <string name="status_critical_threat">Alerte Critique</string>
+
+    <string name="weather_title">Météo et Prévisions de Pluie</string>
+    <string name="market_title">Prix des Produits Régionaux</string>
+    <string name="audio_guides_title">Radio de Vulgarisation Agricole</string>
+    <string name="farmer_spaces_title">Espaces Communautaires</string>
+    <string name="resilience_vault_title">Votre Coffre de Résilience</string>
+
+    <string name="action_submit">Soumettre</string>
+    <string name="action_retry">Réessayer</string>
+    <string name="action_save">Enregistrer l'Observation</string>
+</resources>

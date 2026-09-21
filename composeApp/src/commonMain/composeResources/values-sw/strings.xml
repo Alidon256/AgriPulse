@@ -1,0 +1,28 @@
+<resources>
+    <string name="app_name">AgriPulse</string>
+    <string name="tagline">Kituo cha Ustahimilivu wa Wakulima na Mazao</string>
+    <string name="nav_home">Nyumbani</string>
+    <string name="nav_spaces">Jumuia</string>
+    <string name="nav_profile">Wasifu</string>
+    <string name="nav_check_in">Ukaguzi wa Mazao</string>
+    <string name="nav_vault">Hazina ya Ustahimilivu</string>
+
+    <string name="daily_check_in_title">Ukaguzi wa Kila Siku wa Mazao</string>
+    <string name="daily_check_in_subtitle">Ugunduzi wa mapema huzuia hasara ya mazao. Fuatilia shamba lako kila siku.</string>
+    <string name="start_scouting">Anza Ukaguzi wa Shamba</string>
+
+    <string name="status_optimal">Ukuaji Bora</string>
+    <string name="status_mild_stress">Msongo Mdogo wa Mazao</string>
+    <string name="status_high_pest_risk">Hatari Kubwa ya Wadudu</string>
+    <string name="status_critical_threat">Tahadhari Muhimu</string>
+
+    <string name="weather_title">Utabiri wa Hali ya Hewa na Mvua</string>
+    <string name="market_title">Bei za Mazao ya Kikanda</string>
+    <string name="audio_guides_title">Redio ya Ushauri wa Kilimo</string>
+    <string name="farmer_spaces_title">Vikundi vya Wakulima</string>
+    <string name="resilience_vault_title">Hazina Yako ya Ustahimilivu</string>
+
+    <string name="action_submit">Wasilisha Hatua</string>
+    <string name="action_retry">Jaribu Tena</string>
+    <string name="action_save">Hifadhi Maelezo ya Shamba</string>
+</resources>
