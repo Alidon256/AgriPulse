@@ -10,6 +10,7 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AddCircle
 import androidx.compose.material.icons.filled.Cancel
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -102,6 +103,18 @@ fun RhythmHomeScreen(
                     placeholderText = "Search extension audio guides (e.g. Maize, Soil, Pests)...",
                     modifier = Modifier.weight(1f).fillMaxWidth(searchBarWidthFraction)
                 )
+
+                if (!isSearchExpanded) {
+                    Spacer(Modifier.width(8.dp))
+                    IconButton(onClick = { navController.navigate(Routes.CREATE_MEDIA_GUIDE) }) {
+                        Icon(
+                            imageVector = Icons.Default.AddCircle,
+                            contentDescription = "Upload Audio Guide",
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(28.dp)
+                        )
+                    }
+                }
             }
 
             RhythmHomeContent(

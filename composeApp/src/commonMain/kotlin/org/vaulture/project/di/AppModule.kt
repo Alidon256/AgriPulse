@@ -20,15 +20,18 @@ import org.vaulture.project.features.home.data.repository.AgronomicActionReposit
 import org.vaulture.project.features.home.data.repository.AnalyticsRepositoryImpl
 import org.vaulture.project.features.home.data.repository.CheckInRepositoryImpl
 import org.vaulture.project.features.home.data.repository.RhythmRepositoryImpl
+import org.vaulture.project.features.home.data.repository.VideoGuideRepositoryImpl
 import org.vaulture.project.features.home.domain.repository.AgronomicActionRepository
 import org.vaulture.project.features.home.domain.repository.AnalyticsRepository
 import org.vaulture.project.features.home.domain.repository.CheckInRepository
 import org.vaulture.project.features.home.domain.repository.RhythmRepository
+import org.vaulture.project.features.home.domain.repository.VideoGuideRepository
 import org.vaulture.project.features.home.domain.usecase.AnalyzeCheckInUseCase
 import org.vaulture.project.features.home.domain.usecase.SubmitAgronomicActionUseCase
 import org.vaulture.project.features.home.presentation.viewmodel.AnalyticsViewModel
 import org.vaulture.project.features.home.presentation.viewmodel.CBTViewModel
 import org.vaulture.project.features.home.presentation.viewmodel.CheckInViewModel
+import org.vaulture.project.features.home.presentation.viewmodel.CreateMediaGuideViewModel
 import org.vaulture.project.features.home.presentation.viewmodel.RhythmViewModel
 import org.vaulture.project.features.space.data.repository.SpaceRepositoryImpl
 import org.vaulture.project.features.space.domain.repository.SpaceRepository
@@ -58,6 +61,7 @@ val repositoryModule = module {
     single<AnalyticsRepository> { AnalyticsRepositoryImpl(get(), get(), get()) }
     single<AgronomicActionRepository> { AgronomicActionRepositoryImpl(get(), get()) }
     single<RhythmRepository> { RhythmRepositoryImpl(get()) }
+    single<VideoGuideRepository> { VideoGuideRepositoryImpl(get()) }
     single<WellnessRepository> { WellnessRepositoryImpl(get(), get()) }
 }
 
@@ -74,6 +78,7 @@ val viewModelModule = module {
     viewModelOf(::AnalyticsViewModel)
     viewModelOf(::CBTViewModel)
     viewModelOf(::RhythmViewModel)
+    viewModelOf(::CreateMediaGuideViewModel)
     viewModelOf(::WellnessViewModel)
 }
 

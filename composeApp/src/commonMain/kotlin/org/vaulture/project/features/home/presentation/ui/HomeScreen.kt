@@ -60,6 +60,7 @@ import org.vaulture.project.presentation.ui.components.VideoGuideCard
 import org.vaulture.project.presentation.ui.components.VideoGuidePlayerDialog
 import org.vaulture.project.features.home.domain.model.DEFAULT_VIDEO_GUIDES
 import org.vaulture.project.features.home.domain.model.FarmerVideoGuide
+import org.vaulture.project.features.home.domain.repository.VideoGuideRepository
 import org.vaulture.project.features.space.domain.model.Space
 import org.vaulture.project.features.home.presentation.viewmodel.CheckInViewModel
 import org.vaulture.project.features.home.presentation.viewmodel.RhythmViewModel
@@ -416,6 +417,11 @@ fun DashboardMobileLayout(
         else -> "Good Evening 🌙,"
     }
 
+    val videoGuideRepository: VideoGuideRepository = koinInject()
+    val videoGuides by remember(videoGuideRepository) {
+        videoGuideRepository.getVideoGuidesStream()
+    }.collectAsState(initial = DEFAULT_VIDEO_GUIDES)
+
     var activeVideo by remember { mutableStateOf<FarmerVideoGuide?>(null) }
 
     if (activeVideo != null) {
@@ -527,15 +533,47 @@ fun DashboardMobileLayout(
                             )
                         )
                     }
-                    Text(
-                        text = "See All",
-                        style = PoppinsTypography().bodySmall.copy(
-                            fontSize = 14.sp,
-                            color = MaterialTheme.colorScheme.primary,
-                            fontWeight = FontWeight.SemiBold
-                        ),
-                        modifier = Modifier.clickable { navController.navigate(Routes.MELODIES) }
-                    )
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Surface(
+                            shape = RoundedCornerShape(10.dp),
+                            color = MaterialTheme.colorScheme.primaryContainer,
+                            modifier = Modifier.clickable { navController.navigate(Routes.CREATE_MEDIA_GUIDE) }
+                        ) {
+                            Row(
+                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Icon(
+                                    Icons.Default.Add,
+                                    contentDescription = "Add Guide",
+                                    tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                                    modifier = Modifier.size(16.dp)
+                                )
+                                Spacer(Modifier.width(4.dp))
+                                Text(
+                                    text = "Add Guide",
+                                    style = PoppinsTypography().bodySmall.copy(
+                                        fontSize = 12.sp,
+                                        color = MaterialTheme.colorScheme.onPrimaryContainer,
+                                        fontWeight = FontWeight.Bold
+                                    )
+                                )
+                            }
+                        }
+
+                        Text(
+                            text = "See All",
+                            style = PoppinsTypography().bodySmall.copy(
+                                fontSize = 14.sp,
+                                color = MaterialTheme.colorScheme.primary,
+                                fontWeight = FontWeight.SemiBold
+                            ),
+                            modifier = Modifier.clickable { navController.navigate(Routes.MELODIES) }
+                        )
+                    }
                 }
 
                 Spacer(Modifier.height(8.dp))
@@ -544,7 +582,7 @@ fun DashboardMobileLayout(
                     contentPadding = PaddingValues(horizontal = 16.dp),
                     horizontalArrangement = Arrangement.spacedBy(14.dp)
                 ) {
-                    items(DEFAULT_VIDEO_GUIDES, key = { it.id }) { video ->
+                    items(videoGuides, key = { it.id }) { video ->
                         VideoGuideCard(
                             video = video,
                             onClick = { activeVideo = video }
@@ -659,6 +697,11 @@ fun DashboardWebLayout(
         in 12..17 -> "Good Afternoon ☀️,"
         else -> "Good Evening 🌙,"
     }
+
+    val videoGuideRepository: VideoGuideRepository = koinInject()
+    val videoGuides by remember(videoGuideRepository) {
+        videoGuideRepository.getVideoGuidesStream()
+    }.collectAsState(initial = DEFAULT_VIDEO_GUIDES)
 
     var activeVideo by remember { mutableStateOf<FarmerVideoGuide?>(null) }
     var isRightPaneCollapsed by remember { mutableStateOf(false) }
@@ -790,22 +833,54 @@ fun DashboardWebLayout(
                                 color = MaterialTheme.colorScheme.onSurface
                             )
                         )
-                        Text(
-                            text = "See All",
-                            style = PoppinsTypography().bodySmall.copy(
-                                fontSize = 14.sp,
-                                color = MaterialTheme.colorScheme.primary,
-                                fontWeight = FontWeight.SemiBold
-                            ),
-                            modifier = Modifier.clickable { navController.navigate(Routes.MELODIES) }
-                        )
+                        Row(
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Surface(
+                                shape = RoundedCornerShape(10.dp),
+                                color = MaterialTheme.colorScheme.primaryContainer,
+                                modifier = Modifier.clickable { navController.navigate(Routes.CREATE_MEDIA_GUIDE) }
+                            ) {
+                                Row(
+                                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Icon(
+                                        Icons.Default.Add,
+                                        contentDescription = "Add Guide",
+                                        tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                                        modifier = Modifier.size(16.dp)
+                                    )
+                                    Spacer(Modifier.width(4.dp))
+                                    Text(
+                                        text = "Add Guide",
+                                        style = PoppinsTypography().bodySmall.copy(
+                                            fontSize = 12.sp,
+                                            color = MaterialTheme.colorScheme.onPrimaryContainer,
+                                            fontWeight = FontWeight.Bold
+                                        )
+                                    )
+                                }
+                            }
+
+                            Text(
+                                text = "See All",
+                                style = PoppinsTypography().bodySmall.copy(
+                                    fontSize = 14.sp,
+                                    color = MaterialTheme.colorScheme.primary,
+                                    fontWeight = FontWeight.SemiBold
+                                ),
+                                modifier = Modifier.clickable { navController.navigate(Routes.MELODIES) }
+                            )
+                        }
                     }
                     Spacer(Modifier.height(8.dp))
                     LazyRow(
                         contentPadding = PaddingValues(horizontal = 16.dp),
                         horizontalArrangement = Arrangement.spacedBy(14.dp)
                     ) {
-                        items(DEFAULT_VIDEO_GUIDES, key = { it.id }) { video ->
+                        items(videoGuides, key = { it.id }) { video ->
                             VideoGuideCard(video = video, onClick = { activeVideo = video })
                         }
                     }

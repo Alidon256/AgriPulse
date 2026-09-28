@@ -1,0 +1,20 @@
+{
+  "name": "agripulse",
+  "version": "1.0.0",
+  "private": true,
+  "description": "AgriPulse Web - African Smallholder Climate & Agricultural Resilience Platform",
+  "scripts": {
+    "build": "./gradlew :composeApp:jsBrowserDistribution --no-daemon",
+    "test": "./gradlew :composeApp:jsTest --no-daemon",
+    "dev": "./gradlew :composeApp:jsBrowserDevelopmentRun --continuous"
+  },
+  "keywords": [
+    "agripulse",
+    "compose-multiplatform",
+    "kotlin-js",
+    "agriculture",
+    "africa"
+  ],
+  "author": "AgriPulse Team",
+  "license": "MIT"
+}

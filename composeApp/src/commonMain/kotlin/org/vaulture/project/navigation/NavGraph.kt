@@ -40,8 +40,10 @@ import org.vaulture.project.features.home.presentation.ui.CBTScreen
 import org.vaulture.project.features.home.presentation.ui.HomeScreen
 import org.vaulture.project.features.home.presentation.ui.RhythmHomeScreen
 import org.vaulture.project.features.home.presentation.ui.RhythmPlayerScreen
+import org.vaulture.project.features.home.presentation.ui.CreateMediaGuideScreen
 import org.vaulture.project.features.home.presentation.viewmodel.AnalyticsViewModel
 import org.vaulture.project.features.home.presentation.viewmodel.CBTViewModel
+import org.vaulture.project.features.home.presentation.viewmodel.CreateMediaGuideViewModel
 import org.vaulture.project.features.home.presentation.viewmodel.RhythmViewModel
 import org.vaulture.project.features.profile.presentation.ui.EditPortfolioScreen
 import org.vaulture.project.features.profile.presentation.ui.ProfileScreen
@@ -241,13 +243,24 @@ fun NavGraph(
                 SettingsScreen(
                     viewModel = settingsViewModel,
                     onBack = { navController.popBackStack() },
-                    onSignOut = {
+                    onSignOut = { revisitOnboarding ->
                         scope.launch {
                             loginViewModel.authService.signOut()
-                            navController.navigate(Routes.LOGIN) {
-                                popUpTo(0)
+                            if (revisitOnboarding) {
+                                OnboardingManager.resetOnboarding()
+                                navController.navigate(Routes.WELCOME) {
+                                    popUpTo(0) { inclusive = true }
+                                }
+                            } else {
+                                navController.navigate(Routes.LOGIN) {
+                                    popUpTo(0) { inclusive = true }
+                                }
                             }
                         }
+                    },
+                    onRevisitOnboarding = {
+                        OnboardingManager.resetOnboarding()
+                        navController.navigate(Routes.WELCOME)
                     }
                 )
             }
@@ -256,6 +269,15 @@ fun NavGraph(
                 RhythmHomeScreen(
                     navController = navController,
                     viewModel = rhythmViewModel
+                )
+            }
+
+            composable<Routes.CREATE_MEDIA_GUIDE> {
+                val createMediaGuideViewModel: CreateMediaGuideViewModel = koinInject()
+                CreateMediaGuideScreen(
+                    viewModel = createMediaGuideViewModel,
+                    onBack = { navController.popBackStack() },
+                    onPublished = { navController.popBackStack() }
                 )
             }
 

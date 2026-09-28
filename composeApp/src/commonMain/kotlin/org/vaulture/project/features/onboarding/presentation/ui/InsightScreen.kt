@@ -13,8 +13,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Shadow
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -58,6 +60,35 @@ fun InsightScreen(onGetStarted: () -> Unit) {
             "Natural Pesticide",
             isLarge = true,
             span = 2
+        ),
+        PulseStory(
+            "5",
+            "Soil Health Mapping",
+            "https://images.pexels.com/photos/60021/pexels-photo-60021.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2",
+            "Technology",
+            span = 1
+        ),
+        PulseStory(
+            "6",
+            "Pest Alert System",
+            "https://images.pexels.com/photos/422218/pexels-photo-422218.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2",
+            "Early Warning",
+            span = 1
+        ),
+        PulseStory(
+            "7",
+            "Livestock Management",
+            "https://images.pexels.com/photos/422220/pexels-photo-422220.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2",
+            "Animal Care",
+            isLarge = true,
+            span = 2
+        ),
+        PulseStory(
+            "8",
+            "Market Price Index",
+            "https://images.pexels.com/photos/2599244/pexels-photo-2599244.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2",
+            "Economics",
+            span = 1
         )
     )
 
@@ -158,6 +189,10 @@ fun PulseStoryCard(story: PulseStory) {
         "2" -> Res.drawable.val_2
         "3" -> Res.drawable.bg_two
         "4" -> Res.drawable.ic_img1
+        "5" -> Res.drawable.bg_two
+        "6" -> Res.drawable.val_2
+        "7" -> Res.drawable.val_1
+        "8" -> Res.drawable.ic_img1
         else -> Res.drawable.bg_two
     }
 
@@ -197,7 +232,13 @@ fun PulseStoryCard(story: PulseStory) {
                     text = story.category.uppercase(),
                     color = MaterialTheme.colorScheme.primaryContainer,
                     fontSize = 12.sp,
-                    style = PoppinsTypography().labelSmall,
+                    style = PoppinsTypography().labelSmall.copy(
+                        shadow = Shadow(
+                            color = Color.Black.copy(alpha = 0.5f),
+                            offset = Offset(2f, 2f),
+                            blurRadius = 4f
+                        )
+                    ),
                     fontWeight = FontWeight.Bold,
                     letterSpacing = 1.sp
                 )
@@ -205,7 +246,13 @@ fun PulseStoryCard(story: PulseStory) {
                 Text(
                     text = story.title,
                     color = Color.White,
-                    style = PoppinsTypography().bodyMedium,
+                    style = PoppinsTypography().bodyMedium.copy(
+                        shadow = Shadow(
+                            color = Color.Black.copy(alpha = 0.5f),
+                            offset = Offset(2f, 2f),
+                            blurRadius = 4f
+                        )
+                    ),
                     fontSize = if (story.isLarge) 22.sp else 18.sp,
                     fontWeight = FontWeight.SemiBold,
                 )

@@ -1,12 +1,20 @@
 package org.vaulture.project.features.onboarding.presentation.ui
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.blur
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.*
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
@@ -29,6 +37,7 @@ fun WelcomeScreen(
     Box(
         modifier = Modifier.fillMaxSize()
     ) {
+        // 1. Background Image
         Image(
             painter = painterResource(Res.drawable.ic_img1),
             contentDescription = "Agricultural Field",
@@ -36,97 +45,159 @@ fun WelcomeScreen(
             contentScale = ContentScale.Crop
         )
 
+        // 2. Dark Scrim Overlay for Contrast & Depth
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(
+                    Brush.verticalGradient(
+                        colors = listOf(
+                            Color.Black.copy(alpha = 0.35f),
+                            Color.Black.copy(alpha = 0.55f),
+                            Color.Black.copy(alpha = 0.85f)
+                        )
+                    )
+                )
+        )
+
+        // 3. Foreground Content
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(24.dp),
+                .statusBarsPadding()
+                .navigationBarsPadding()
+                .padding(horizontal = 20.dp, vertical = 24.dp)
+                .verticalScroll(rememberScrollState()),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.SpaceBetween
         ) {
-            Spacer(modifier = Modifier.height(80.dp))
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
-                modifier = Modifier.weight(1f),
-                verticalArrangement = Arrangement.Center
+            Spacer(modifier = Modifier.height(32.dp))
+
+            // Logo Header
+            Image(
+                painter = painterResource(Res.drawable.mindset_pulse_nobg_logo),
+                contentDescription = "AgriPulse Logo",
+                modifier = Modifier
+                    .wrapContentSize()
+                    .heightIn(max = 140.dp)
+                    .padding(bottom = 16.dp),
+                contentScale = ContentScale.Fit
+            )
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            // Glassmorphism Frosted Container for Text & Actions
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .widthIn(max = 480.dp)
+                    .clip(RoundedCornerShape(28.dp))
+                    .background(Color.Black.copy(alpha = 0.45f))
+                    .border(
+                        border = BorderStroke(
+                            width = 1.dp,
+                            brush = Brush.verticalGradient(
+                                colors = listOf(
+                                    Color.White.copy(alpha = 0.35f),
+                                    Color.White.copy(alpha = 0.08f)
+                                )
+                            )
+                        ),
+                        shape = RoundedCornerShape(28.dp)
+                    )
+                    .padding(horizontal = 24.dp, vertical = 28.dp)
             ) {
-
-                Image(
-                    painter = painterResource(Res.drawable.mindset_pulse_nobg_logo),
-                    contentDescription = "AgriPulse Logo",
-                    modifier = Modifier.wrapContentSize(),
-                    contentScale = ContentScale.Crop
-                )
-
-                Text(
-                    text = "Empowering Smallholder Farmers. Boosting Harvest Yields.",
-                    fontSize = 18.sp,
-                    fontWeight = FontWeight.Bold,
-                    style = PoppinsTypography().bodyMedium,
-                    color = Color.White,
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier.padding(top = 16.dp, start = 24.dp, end = 24.dp)
-                )
-
-                Text(
-                    text = "AI-powered crop stress diagnostics, weather-smart guidance, and peer farming communities across Africa.",
-                    fontSize = 14.sp,
-                    style = PoppinsTypography().bodySmall,
-                    color = Color.White.copy(alpha = 0.85f),
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier.padding(top = 8.dp, start = 24.dp, end = 24.dp)
-                )
-            }
-
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
-                modifier = Modifier.padding(bottom = 32.dp)
-            ) {
-                Button(
-                    onClick = onGetStarted,
-                    modifier = Modifier
-                        .widthIn(min = 300.dp)
-                        .height(56.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.primary,
-                        contentColor = MaterialTheme.colorScheme.onPrimary
-                    ),
-                    shape = RoundedCornerShape(12.dp)
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
                 ) {
                     Text(
-                        text = "Get Started as a Farmer 🌾",
-                        fontSize = 16.sp,
-                        style = PoppinsTypography().bodyMedium,
+                        text = "Empowering Smallholder Farmers. Boosting Harvest Yields.",
+                        fontSize = 20.sp,
                         fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onPrimary
+                        style = PoppinsTypography().bodyLarge.copy(
+                            shadow = Shadow(
+                                color = Color.Black.copy(alpha = 0.6f),
+                                offset = Offset(1f, 2f),
+                                blurRadius = 4f
+                            )
+                        ),
+                        color = Color.White,
+                        textAlign = TextAlign.Center,
+                        lineHeight = 28.sp
                     )
-                }
 
-                Spacer(modifier = Modifier.height(16.dp))
+                    Spacer(modifier = Modifier.height(12.dp))
 
-                Row(
-                    horizontalArrangement = Arrangement.Center,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
                     Text(
-                        text = "Already registered? ",
-                        style = PoppinsTypography().bodyMedium,
-                        color = Color.White.copy(alpha = 0.8f),
-                        fontSize = 14.sp
+                        text = "AI-powered crop stress diagnostics, weather-smart guidance, and peer farming communities across Africa.",
+                        fontSize = 14.sp,
+                        style = PoppinsTypography().bodyMedium.copy(
+                            shadow = Shadow(
+                                color = Color.Black.copy(alpha = 0.6f),
+                                offset = Offset(1f, 1f),
+                                blurRadius = 3f
+                            )
+                        ),
+                        color = Color.White.copy(alpha = 0.90f),
+                        textAlign = TextAlign.Center,
+                        lineHeight = 20.sp
                     )
-                    TextButton(
-                        onClick = onLoginClicked,
-                        contentPadding = PaddingValues(0.dp)
+
+                    Spacer(modifier = Modifier.height(28.dp))
+
+                    // Action Button
+                    Button(
+                        onClick = onGetStarted,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(56.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.primary,
+                            contentColor = MaterialTheme.colorScheme.onPrimary
+                        ),
+                        shape = RoundedCornerShape(16.dp),
+                        elevation = ButtonDefaults.buttonElevation(defaultElevation = 4.dp)
                     ) {
                         Text(
-                            text = "Log in",
-                            color = MaterialTheme.colorScheme.secondaryContainer,
+                            text = "Get Started as a Farmer 🌾",
+                            fontSize = 16.sp,
                             style = PoppinsTypography().bodyMedium,
-                            fontSize = 14.sp,
-                            fontWeight = FontWeight.Bold
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onPrimary
                         )
+                    }
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    // Login Link
+                    Row(
+                        horizontalArrangement = Arrangement.Center,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = "Already registered? ",
+                            style = PoppinsTypography().bodyMedium,
+                            color = Color.White.copy(alpha = 0.85f),
+                            fontSize = 14.sp
+                        )
+                        TextButton(
+                            onClick = onLoginClicked,
+                            contentPadding = PaddingValues(horizontal = 4.dp, vertical = 0.dp)
+                        ) {
+                            Text(
+                                text = "Log in",
+                                color = MaterialTheme.colorScheme.primaryContainer,
+                                style = PoppinsTypography().bodyMedium,
+                                fontSize = 14.sp,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
                     }
                 }
             }
+
+            Spacer(modifier = Modifier.height(16.dp))
         }
     }
 }
@@ -139,3 +210,4 @@ fun WelcomeScreenPreview() {
         onLoginClicked = {}
     )
 }
+

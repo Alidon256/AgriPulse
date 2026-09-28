@@ -25,7 +25,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import org.vaulture.project.core.theme.AppThemeMode
 import org.vaulture.project.core.theme.PoppinsTypography
-import org.vaulture.project.core.theme.ThemePalette
 import org.vaulture.project.features.profile.presentation.viewmodel.SettingsViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -33,9 +32,62 @@ import org.vaulture.project.features.profile.presentation.viewmodel.SettingsView
 fun SettingsScreen(
     viewModel: SettingsViewModel,
     onBack: () -> Unit,
-    onSignOut: () -> Unit
+    onSignOut: (revisitOnboarding: Boolean) -> Unit,
+    onRevisitOnboarding: () -> Unit = { onSignOut(true) }
 ) {
     val state by viewModel.uiState.collectAsState()
+    var showSignOutDialog by remember { mutableStateOf(false) }
+
+    if (showSignOutDialog) {
+        AlertDialog(
+            onDismissRequest = { showSignOutDialog = false },
+            icon = {
+                Icon(
+                    Icons.AutoMirrored.Filled.Logout,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary
+                )
+            },
+            title = {
+                Text(
+                    "Sign Out Options",
+                    style = PoppinsTypography().titleLarge,
+                    fontWeight = FontWeight.Bold
+                )
+            },
+            text = {
+                Text(
+                    "Where would you like to navigate after signing out? You can return to the onboarding walkthrough or proceed to Login.",
+                    style = PoppinsTypography().bodyMedium
+                )
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        showSignOutDialog = false
+                        onSignOut(true)
+                    }
+                ) {
+                    Text("Take me to Onboarding")
+                }
+            },
+            dismissButton = {
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    OutlinedButton(
+                        onClick = {
+                            showSignOutDialog = false
+                            onSignOut(false)
+                        }
+                    ) {
+                        Text("Go to Login")
+                    }
+                    TextButton(onClick = { showSignOutDialog = false }) {
+                        Text("Cancel")
+                    }
+                }
+            }
+        )
+    }
 
     Scaffold(
         topBar = {
@@ -88,13 +140,6 @@ fun SettingsScreen(
                         currentMode = state.themeMode,
                         onModeSelected = { viewModel.setThemeMode(it) }
                     )
-
-                    Spacer(Modifier.height(16.dp))
-
-                    ColorPaletteSelectorCard(
-                        currentPalette = state.themePalette,
-                        onPaletteSelected = { viewModel.setThemePalette(it) }
-                    )
                 }
 
                 item {
@@ -103,7 +148,7 @@ fun SettingsScreen(
                         SettingsSwitchItem(
                             icon = Icons.Default.Notifications,
                             title = "Notifications",
-                            subtitle = "Daily reminders and insights",
+                            subtitle = "Daily pest alerts, rainfall notices, and insights",
                             checked = state.notificationsEnabled,
                             onCheckedChange = { viewModel.toggleNotifications(it) }
                         )
@@ -111,9 +156,16 @@ fun SettingsScreen(
                         SettingsSwitchItem(
                             icon = Icons.Default.Wifi,
                             title = "Data Saver",
-                            subtitle = "Reduce data usage on mobile networks",
+                            subtitle = "Optimize low-bandwidth imagery and audio streaming",
                             checked = state.dataSaverEnabled,
                             onCheckedChange = { viewModel.toggleDataSaver(it) }
+                        )
+                        HorizontalDivider(thickness = 0.5.dp, color = MaterialTheme.colorScheme.outlineVariant)
+                        SettingsClickableItem(
+                            icon = Icons.Default.Explore,
+                            title = "Revisit Onboarding Tour",
+                            subtitle = "Re-experience the app walkthrough and agronomic feature guide",
+                            onClick = onRevisitOnboarding
                         )
                     }
                 }
@@ -121,7 +173,7 @@ fun SettingsScreen(
                 item {
                     Spacer(Modifier.height(12.dp))
                     OutlinedButton(
-                        onClick = onSignOut,
+                        onClick = { showSignOutDialog = true },
                         modifier = Modifier.fillMaxWidth().height(50.dp),
                         colors = ButtonDefaults.outlinedButtonColors(
                             contentColor = MaterialTheme.colorScheme.error
@@ -203,112 +255,47 @@ fun ThemeModeSelectorCard(
 }
 
 @Composable
-fun ColorPaletteSelectorCard(
-    currentPalette: ThemePalette,
-    onPaletteSelected: (ThemePalette) -> Unit
+fun SettingsClickableItem(
+    icon: ImageVector,
+    title: String,
+    subtitle: String? = null,
+    onClick: () -> Unit
 ) {
-    Card(
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
-        shape = RoundedCornerShape(24.dp),
-        modifier = Modifier.fillMaxWidth()
-    ) {
-        Column(
-            modifier = Modifier
-                .padding(16.dp)
-        ) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(
-                    Icons.Default.Palette,
-                    null,
-                    tint = MaterialTheme.colorScheme.onSurface
-                )
-                Spacer(Modifier.width(12.dp))
-                Text(
-                    "Color Palette",
-                    style = PoppinsTypography().titleMedium,
-                    fontWeight = FontWeight.Medium
-                )
-            }
-            Spacer(Modifier.height(16.dp))
-
-            Column(
-                verticalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                PaletteOptionRow(
-                    palette = ThemePalette.NATURE,
-                    currentPalette = currentPalette,
-                    label = "Nature Emerald",
-                    colorPreview = Color(0xFF2E7D32), // Green
-                    onClick = onPaletteSelected
-                )
-                PaletteOptionRow(
-                    palette = ThemePalette.OCEAN,
-                    currentPalette = currentPalette,
-                    label = "Fresh Irrigation",
-                    colorPreview = Color(0xFF006495), // Blue
-                    onClick = onPaletteSelected
-                )
-                PaletteOptionRow(
-                    palette = ThemePalette.SUNSET,
-                    currentPalette = currentPalette,
-                    label = "Golden Harvest",
-                    colorPreview = Color(0xFF9C4146), // Red/Orange
-                    onClick = onPaletteSelected
-                )
-            }
-        }
-    }
-}
-
-@Composable
-fun PaletteOptionRow(
-    palette: ThemePalette,
-    currentPalette: ThemePalette,
-    label: String,
-    colorPreview: Color,
-    onClick: (ThemePalette) -> Unit
-) {
-    val isSelected = palette == currentPalette
-    val backgroundColor by animateColorAsState(
-        if (isSelected) MaterialTheme.colorScheme.primaryContainer else Color.Transparent
-    )
-
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(12.dp))
-            .background(backgroundColor)
-            .clickable { onClick(palette) }
-            .padding(12.dp),
+            .clickable(onClick = onClick)
+            .padding(16.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Box(
-            modifier = Modifier
-                .size(24.dp)
-                .clip(CircleShape)
-                .background(colorPreview)
-                .border(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.5f), CircleShape)
+        Icon(
+            imageVector = icon,
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.primary,
+            modifier = Modifier.size(24.dp)
         )
-
         Spacer(Modifier.width(16.dp))
-
-        Text(
-            text = label,
-            style = PoppinsTypography().bodyMedium,
-            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
-            color = MaterialTheme.colorScheme.onSurface
-        )
-
-        Spacer(Modifier.weight(1f))
-
-        if (isSelected) {
-            Icon(
-                imageVector = Icons.Default.CheckCircle,
-                contentDescription = "Selected",
-                tint = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.size(20.dp)
+        Column(
+            modifier = Modifier.weight(1f)
+        ) {
+            Text(
+                text = title,
+                style = PoppinsTypography().bodyLarge
             )
+            if (subtitle != null) {
+                Text(
+                    text = subtitle,
+                    style = PoppinsTypography().bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
         }
+        Icon(
+            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
+            modifier = Modifier.size(16.dp).scale(scaleX = -1f, scaleY = 1f)
+        )
     }
 }
 

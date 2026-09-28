@@ -12,8 +12,10 @@ data class FarmerVideoGuide(
     val category: String,
     val thumbnailUrl: String,
     val videoUrl: String,
-    val youtubeVideoId: String,
-    val keyTakeaways: List<String>
+    val youtubeVideoId: String = "",
+    val keyTakeaways: List<String> = emptyList(),
+    val language: String = "English",
+    val tags: List<String> = emptyList()
 )
 
 val DEFAULT_VIDEO_GUIDES = listOf(

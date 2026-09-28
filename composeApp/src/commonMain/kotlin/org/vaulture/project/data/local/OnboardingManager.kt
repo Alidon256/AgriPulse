@@ -24,4 +24,9 @@ object OnboardingManager {
         hasCompletedOnboarding = true
         settings?.putBoolean(KEY_HAS_COMPLETED_ONBOARDING, true)
     }
+
+    fun resetOnboarding() {
+        hasCompletedOnboarding = false
+        settings?.putBoolean(KEY_HAS_COMPLETED_ONBOARDING, false)
+    }
 }

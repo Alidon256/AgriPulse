@@ -36,10 +36,12 @@ object Routes {
     @Serializable data class PORTFOLIO(val userId: String) : NavDestination { override val routePattern: String = "PORTFOLIO" }
     @Serializable data object CREATE_SPACE : NavDestination { override val routePattern: String = "CREATE_SPACE" }
     @Serializable data object EDIT_USER_INFO : NavDestination { override val routePattern: String = "EDIT_USER_INFO" }
+    @Serializable data object CREATE_MEDIA_GUIDE : NavDestination { override val routePattern: String = "CREATE_MEDIA_GUIDE" }
 
     // Agronomic Resilience Aliases
     val CROP_DIAGNOSTIC get() = CHECK_IN
     val AUDIO_GUIDES get() = MELODIES
+    val UPLOAD_MEDIA_GUIDE get() = CREATE_MEDIA_GUIDE
 }
 
 data class BottomNavItem(

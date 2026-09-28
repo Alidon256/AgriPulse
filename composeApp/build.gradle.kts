@@ -148,4 +148,8 @@ dependencies {
     debugImplementation(compose.uiTooling)
 }
 
+tasks.withType<Copy>().configureEach {
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+}
+
 
