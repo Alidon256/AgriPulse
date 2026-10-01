@@ -32,7 +32,7 @@ jobs:
         uses: amondnet/vercel-action@v25
         with:
           vercel-token: ${{ secrets.VERCEL_TOKEN }}
-          vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
-          vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
+          vercel-org-id: "team_J1POzD1NNnL9amNG1IsyuKFa"
+          vercel-project-id: "prj_04XLPxTHV9YqGjDLkNUL4AgtN5Mm"
           vercel-args: '--prod'
           working-directory: composeApp/build/dist/js/productionExecutable
