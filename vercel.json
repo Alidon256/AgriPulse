@@ -1,7 +1,7 @@
 {
   "version": 2,
   "name": "agripulse-web",
-  "buildCommand": "./gradlew :composeApp:jsBrowserDistribution --no-daemon",
+  "buildCommand": "bash ./gradlew :composeApp:jsBrowserDistribution --no-daemon",
   "outputDirectory": "composeApp/build/dist/js/productionExecutable",
   "cleanUrls": true,
   "framework": null,

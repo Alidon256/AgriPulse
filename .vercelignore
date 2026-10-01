@@ -1,0 +1,12 @@
+.gradle
+.idea
+.kotlin
+build
+composeApp/build/classes
+composeApp/build/intermediates
+composeApp/build/tmp
+composeApp/build/reports
+composeApp/build/kotlin
+androidApp/build
+desktopApp/build
+*.hprof
