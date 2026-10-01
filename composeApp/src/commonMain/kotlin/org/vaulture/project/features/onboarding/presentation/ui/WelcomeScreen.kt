@@ -22,8 +22,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import mindsetpulse.composeapp.generated.resources.Res
+import mindsetpulse.composeapp.generated.resources.agripulse_nobg_logo
 import mindsetpulse.composeapp.generated.resources.ic_img1
-import mindsetpulse.composeapp.generated.resources.mindset_pulse_nobg_logo
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.ui.tooling.preview.Preview
 import org.vaulture.project.core.theme.PoppinsTypography
@@ -75,7 +75,7 @@ fun WelcomeScreen(
 
             // Logo Header
             Image(
-                painter = painterResource(Res.drawable.mindset_pulse_nobg_logo),
+                painter = painterResource(Res.drawable.agripulse_nobg_logo),
                 contentDescription = "AgriPulse Logo",
                 modifier = Modifier
                     .wrapContentSize()

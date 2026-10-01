@@ -24,7 +24,7 @@ import androidx.compose.ui.unit.dp
 
 import coil3.compose.AsyncImage
 import mindsetpulse.composeapp.generated.resources.Res
-import mindsetpulse.composeapp.generated.resources.mindset_pulse_logo
+import mindsetpulse.composeapp.generated.resources.agripulse_logo
 import org.jetbrains.compose.resources.painterResource
 import org.vaulture.project.core.theme.PoppinsTypography
 import org.vaulture.project.features.space.domain.model.Space
@@ -96,7 +96,7 @@ fun SpaceListItem(
                     )
                 } else {
                     Image(
-                        painter = painterResource(Res.drawable.mindset_pulse_logo),
+                        painter = painterResource(Res.drawable.agripulse_logo),
                         contentDescription = "Default Icon",
                         modifier = Modifier.padding(12.dp).fillMaxSize(),
                         contentScale = ContentScale.Fit

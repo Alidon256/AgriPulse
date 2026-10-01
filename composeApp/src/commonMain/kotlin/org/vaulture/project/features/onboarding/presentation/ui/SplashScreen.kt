@@ -17,7 +17,7 @@ import androidx.compose.ui.draw.scale
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.delay
 import mindsetpulse.composeapp.generated.resources.Res
-import mindsetpulse.composeapp.generated.resources.mindset_pulse_nobg_logo
+import mindsetpulse.composeapp.generated.resources.agripulse_nobg_logo
 import org.jetbrains.compose.resources.painterResource
 import org.vaulture.project.core.theme.AppTheme
 import org.vaulture.project.core.theme.AppThemeMode
@@ -48,7 +48,7 @@ fun SplashScreen(onTimeout: () -> Unit) {
                 ) {
 
                     Icon(
-                        painter = painterResource(Res.drawable.mindset_pulse_nobg_logo),
+                        painter = painterResource(Res.drawable.agripulse_nobg_logo),
                         contentDescription = "AgriPulse Logo",
                         modifier = Modifier
                             .size(200.dp)

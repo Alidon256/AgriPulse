@@ -1,5 +1,6 @@
 package org.vaulture.project.features.onboarding.presentation.ui
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -200,8 +201,8 @@ fun PulseStoryCard(story: PulseStory) {
         modifier = Modifier
             .fillMaxWidth()
             .height(if (story.isLarge) 240.dp else 200.dp)
-            .clip(RoundedCornerShape(16.dp)),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+            .clip(RoundedCornerShape(20.dp)),
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
     ) {
         Box(modifier = Modifier.fillMaxSize()) {
             Image(
@@ -211,13 +212,17 @@ fun PulseStoryCard(story: PulseStory) {
                 contentScale = ContentScale.Crop
             )
 
+            // High-Contrast Gradient Scrim
             Box(
                 modifier = Modifier
                     .fillMaxSize()
                     .background(
                         Brush.verticalGradient(
-                            colors = listOf(Color.Transparent, Color.Black.copy(alpha = 0.8f)),
-                            startY = 200f
+                            colors = listOf(
+                                Color.Transparent,
+                                Color.Black.copy(alpha = 0.35f),
+                                Color.Black.copy(alpha = 0.85f)
+                            )
                         )
                     )
             )
@@ -225,38 +230,43 @@ fun PulseStoryCard(story: PulseStory) {
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(16.dp),
+                    .padding(14.dp),
                 verticalArrangement = Arrangement.Bottom
             ) {
-                Text(
-                    text = story.category.uppercase(),
-                    color = MaterialTheme.colorScheme.primaryContainer,
-                    fontSize = 12.sp,
-                    style = PoppinsTypography().labelSmall.copy(
-                        shadow = Shadow(
-                            color = Color.Black.copy(alpha = 0.5f),
-                            offset = Offset(2f, 2f),
-                            blurRadius = 4f
-                        )
-                    ),
-                    fontWeight = FontWeight.Bold,
-                    letterSpacing = 1.sp
-                )
-                Spacer(modifier = Modifier.height(4.dp))
+                // Frosted/Glass Badge for Category Tag
+                Surface(
+                    shape = RoundedCornerShape(8.dp),
+                    color = Color.Black.copy(alpha = 0.65f),
+                    border = BorderStroke(1.dp, Color.White.copy(alpha = 0.25f)),
+                    modifier = Modifier.padding(bottom = 6.dp)
+                ) {
+                    Text(
+                        text = story.category.uppercase(),
+                        color = Color(0xFF80E9A1), // High-visibility mint green
+                        fontSize = 11.sp,
+                        style = PoppinsTypography().labelSmall,
+                        fontWeight = FontWeight.Bold,
+                        letterSpacing = 1.sp,
+                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                    )
+                }
+
                 Text(
                     text = story.title,
                     color = Color.White,
                     style = PoppinsTypography().bodyMedium.copy(
                         shadow = Shadow(
-                            color = Color.Black.copy(alpha = 0.5f),
-                            offset = Offset(2f, 2f),
+                            color = Color.Black.copy(alpha = 0.8f),
+                            offset = Offset(1f, 2f),
                             blurRadius = 4f
                         )
                     ),
-                    fontSize = if (story.isLarge) 22.sp else 18.sp,
-                    fontWeight = FontWeight.SemiBold,
+                    fontSize = if (story.isLarge) 20.sp else 16.sp,
+                    fontWeight = FontWeight.Bold,
+                    lineHeight = if (story.isLarge) 26.sp else 22.sp
                 )
             }
         }
     }
 }
+
