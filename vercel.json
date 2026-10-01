@@ -1,6 +1,8 @@
 {
   "version": 2,
   "name": "agripulse-web",
+  "buildCommand": "echo 'Build handled via GitHub Actions or Vercel CLI'",
+  "outputDirectory": ".",
   "cleanUrls": true,
   "rewrites": [
     {
