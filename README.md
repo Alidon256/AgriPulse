@@ -1,5 +1,4 @@
 # AgriPulse — Farmer Climate & Crop Resilience Hub
-### Kotlin Multiplatform Contest Submission
 *An AI-driven agronomic intelligence and peer-resilience ecosystem engineered with Kotlin Multiplatform, Compose Multiplatform, Koin DI, Ktor, and Google Gemini AI.*
 
 ---
