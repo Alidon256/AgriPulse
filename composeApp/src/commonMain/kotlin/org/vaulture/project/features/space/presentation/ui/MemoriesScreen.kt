@@ -37,6 +37,26 @@ fun MemoriesScreen(
     val isSearching by viewModel.isSearching.collectAsState()
     val currentUser by viewModel.auth.authStateChanged.collectAsState(initial = null)
     val currentUserId = currentUser?.uid ?: ""
+    var editingStory by remember { mutableStateOf<Story?>(null) }
+
+    if (editingStory != null) {
+        org.vaulture.project.presentation.ui.components.EditMemoryDialog(
+            story = editingStory!!,
+            onDismiss = { editingStory = null },
+            onSave = { newText, newMediaBytes, fileName, newThumbnailBytes, newVisibility, newDuration ->
+                viewModel.editPost(
+                    postId = editingStory!!.storyId,
+                    newText = newText,
+                    mediaBytes = newMediaBytes,
+                    mediaFileName = fileName,
+                    thumbnailBytes = newThumbnailBytes,
+                    newVisibility = newVisibility,
+                    duration = newDuration,
+                    onSuccess = { editingStory = null }
+                )
+            }
+        )
+    }
 
     Box(
         modifier = modifier
@@ -71,7 +91,9 @@ fun MemoriesScreen(
                                navController.navigate(Routes.PORTFOLIO(userId))
                            },
                             onBookmarkClick = { viewModel.toggleBookmark(post) },
-                            onOptionClick = {}
+                            onOptionClick = {},
+                            onEditClick = { storyToEdit -> editingStory = storyToEdit },
+                            onDeleteClick = { storyToDelete -> viewModel.deletePost(storyToDelete.storyId) }
                         )
                         ListItemDivider()
                     }

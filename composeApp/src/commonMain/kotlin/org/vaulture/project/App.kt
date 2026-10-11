@@ -78,6 +78,19 @@ fun App(
     LaunchedEffect(authState) {
         if (authState == true) {
             OnboardingManager.completeOnboarding()
+        } else if (authState == false) {
+            rhythmViewModel.closePlayer()
+            spaceViewModel.clearSpaceDetails()
+            val targetRoute = if (!OnboardingManager.hasCompletedOnboarding) {
+                Routes.WELCOME
+            } else {
+                Routes.LOGIN
+            }
+            if (navController.currentDestination?.route != null) {
+                navController.navigate(targetRoute) {
+                    popUpTo(0) { inclusive = true }
+                }
+            }
         }
     }
 
@@ -136,10 +149,8 @@ fun App(
                                 },
                                 onSignOut = {
                                     scope.launch {
+                                        rhythmViewModel.closePlayer()
                                         loginViewModel.authService.signOut()
-                                        navController.navigate(Routes.LOGIN) {
-                                            popUpTo(0)
-                                        }
                                     }
                                 }
                             )

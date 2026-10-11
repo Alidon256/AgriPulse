@@ -28,14 +28,19 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.AddAPhoto
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.CloudUpload
 import androidx.compose.material.icons.filled.Headphones
 import androidx.compose.material.icons.filled.Mic
 import androidx.compose.material.icons.filled.OndemandVideo
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Publish
 import androidx.compose.material.icons.filled.Videocam
+import org.vaulture.project.core.util.ImagePicker
+import org.vaulture.project.core.util.NativeVideoPlayer
+import org.vaulture.project.core.util.VideoPicker
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -122,6 +127,28 @@ fun CreateMediaGuideScreen(
     val snackbarHostState = remember { SnackbarHostStateStateWrapper() }
     val scope = rememberCoroutineScope()
     var newStepText by remember { mutableStateOf("") }
+    var showVideoPicker by remember { mutableStateOf(false) }
+    var showImagePicker by remember { mutableStateOf(false) }
+
+    VideoPicker(
+        show = showVideoPicker,
+        onVideoSelected = { videoBytes, metadata ->
+            showVideoPicker = false
+            if (videoBytes != null) {
+                viewModel.handleVideoPicked(videoBytes, metadata)
+            }
+        }
+    )
+
+    ImagePicker(
+        show = showImagePicker,
+        onImageSelected = { imageBytes ->
+            showImagePicker = false
+            if (imageBytes != null) {
+                viewModel.handleThumbnailPicked(imageBytes)
+            }
+        }
+    )
 
     Scaffold(
         topBar = {
@@ -136,7 +163,7 @@ fun CreateMediaGuideScreen(
                         )
                         Spacer(Modifier.width(8.dp))
                         Text(
-                            text = "Farmer Creator Studio",
+                            text = "Creator Studio",
                             style = PoppinsTypography().titleMedium,
                             fontWeight = FontWeight.Bold
                         )
@@ -271,7 +298,7 @@ fun CreateMediaGuideScreen(
                             OutlinedTextField(
                                 value = state.instructor,
                                 onValueChange = { viewModel.updateInstructor(it) },
-                                label = { Text("Instructor / Extension Org") },
+                                label = { Text("Instructor / Organization") },
                                 placeholder = { Text("e.g., NARO / Farm Lead") },
                                 modifier = Modifier.weight(1f),
                                 singleLine = true,
@@ -382,14 +409,114 @@ fun CreateMediaGuideScreen(
                             fontWeight = FontWeight.Bold
                         )
 
-                        OutlinedTextField(
-                            value = state.mediaUrl,
-                            onValueChange = { viewModel.updateMediaUrl(it) },
-                            label = { Text(if (state.mediaType == GuideMediaType.VIDEO) "Video URL (MP4, YouTube, or Stream)" else "Audio URL (MP3 or Podcast Feed)") },
-                            placeholder = { Text("https://...") },
-                            modifier = Modifier.fillMaxWidth(),
-                            shape = RoundedCornerShape(12.dp)
-                        )
+                        if (state.mediaType == GuideMediaType.VIDEO) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.spacedBy(10.dp)
+                            ) {
+                                Button(
+                                    onClick = { showVideoPicker = true },
+                                    modifier = Modifier.weight(1f),
+                                    shape = RoundedCornerShape(12.dp),
+                                    enabled = !state.isUploadingMedia
+                                ) {
+                                    Icon(Icons.Default.Videocam, null, modifier = Modifier.size(18.dp))
+                                    Spacer(Modifier.width(6.dp))
+                                    Text("Pick Video File", style = PoppinsTypography().labelMedium)
+                                }
+
+                                OutlinedButton(
+                                    onClick = { showImagePicker = true },
+                                    modifier = Modifier.weight(1f),
+                                    shape = RoundedCornerShape(12.dp),
+                                    enabled = !state.isUploadingMedia
+                                ) {
+                                    Icon(Icons.Default.AddAPhoto, null, modifier = Modifier.size(18.dp))
+                                    Spacer(Modifier.width(6.dp))
+                                    Text("Pick Thumbnail", style = PoppinsTypography().labelMedium)
+                                }
+                            }
+                        }
+
+                        if (state.isUploadingMedia) {
+                            Surface(
+                                shape = RoundedCornerShape(12.dp),
+                                color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f),
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                Row(
+                                    modifier = Modifier.padding(12.dp),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    CircularProgressIndicator(
+                                        modifier = Modifier.size(20.dp),
+                                        strokeWidth = 2.dp,
+                                        color = MaterialTheme.colorScheme.primary
+                                    )
+                                    Spacer(Modifier.width(12.dp))
+                                    Text(
+                                        text = state.uploadProgressMessage ?: "Processing media...",
+                                        style = PoppinsTypography().bodyMedium,
+                                        color = MaterialTheme.colorScheme.onPrimaryContainer
+                                    )
+                                }
+                            }
+                        }
+
+                        val isFirebaseMedia = state.mediaUrl.contains("firebasestorage.googleapis.com") || state.mediaUrl.contains("storage.googleapis.com")
+                        if (isFirebaseMedia) {
+                            Surface(
+                                shape = RoundedCornerShape(12.dp),
+                                color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f),
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                Row(
+                                    modifier = Modifier.padding(14.dp),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Icon(
+                                        imageVector = if (state.mediaType == GuideMediaType.VIDEO) Icons.Default.Videocam else Icons.Default.Headphones,
+                                        contentDescription = null,
+                                        tint = MaterialTheme.colorScheme.primary,
+                                        modifier = Modifier.size(28.dp)
+                                    )
+                                    Spacer(Modifier.width(12.dp))
+                                    Column(modifier = Modifier.weight(1f)) {
+                                        Text(
+                                            text = if (state.mediaType == GuideMediaType.VIDEO) "Uploaded Video Attached" else "Uploaded Audio Attached",
+                                            style = PoppinsTypography().labelLarge,
+                                            fontWeight = FontWeight.Bold,
+                                            color = MaterialTheme.colorScheme.onPrimaryContainer
+                                        )
+                                        Text(
+                                            text = "Ready to publish • Duration: ${state.durationText.ifBlank { "Auto-detected" }}",
+                                            style = PoppinsTypography().bodySmall,
+                                            color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f)
+                                        )
+                                    }
+                                    IconButton(
+                                        onClick = { viewModel.updateMediaUrl("") },
+                                        modifier = Modifier.size(32.dp)
+                                    ) {
+                                        Icon(
+                                            Icons.Default.Close,
+                                            contentDescription = "Remove attached media",
+                                            tint = MaterialTheme.colorScheme.error,
+                                            modifier = Modifier.size(18.dp)
+                                        )
+                                    }
+                                }
+                            }
+                        } else {
+                            OutlinedTextField(
+                                value = state.mediaUrl,
+                                onValueChange = { viewModel.updateMediaUrl(it) },
+                                label = { Text(if (state.mediaType == GuideMediaType.VIDEO) "Video URL (MP4, YouTube, or Stream)" else "Audio URL (MP3 or Podcast Feed)") },
+                                placeholder = { Text("https://... (or pick local video file above)") },
+                                modifier = Modifier.fillMaxWidth(),
+                                shape = RoundedCornerShape(12.dp)
+                            )
+                        }
 
                         Text(
                             text = "Quick Cover / Thumbnail Presets",
@@ -413,7 +540,7 @@ fun CreateMediaGuideScreen(
                                         )
                                         .clickable { viewModel.updateThumbnailUrl(url) }
                                         .padding(4.dp)
-                                ) {
+                                    ) {
                                     AsyncImage(
                                         model = url,
                                         contentDescription = label,
@@ -432,14 +559,61 @@ fun CreateMediaGuideScreen(
                             }
                         }
 
-                        OutlinedTextField(
-                            value = state.thumbnailUrl,
-                            onValueChange = { viewModel.updateThumbnailUrl(it) },
-                            label = { Text("Custom Thumbnail URL") },
-                            modifier = Modifier.fillMaxWidth(),
-                            singleLine = true,
-                            shape = RoundedCornerShape(12.dp)
-                        )
+                        val isFirebaseThumb = state.thumbnailUrl.contains("firebasestorage.googleapis.com") || state.thumbnailUrl.contains("storage.googleapis.com")
+                        if (isFirebaseThumb) {
+                            Surface(
+                                shape = RoundedCornerShape(12.dp),
+                                color = MaterialTheme.colorScheme.surfaceVariant,
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                Row(
+                                    modifier = Modifier.padding(12.dp),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    AsyncImage(
+                                        model = state.thumbnailUrl,
+                                        contentDescription = "Extracted thumbnail",
+                                        modifier = Modifier
+                                            .size(60.dp, 40.dp)
+                                            .clip(RoundedCornerShape(8.dp)),
+                                        contentScale = ContentScale.Crop
+                                    )
+                                    Spacer(Modifier.width(12.dp))
+                                    Column(modifier = Modifier.weight(1f)) {
+                                        Text(
+                                            text = "Extracted Video Thumbnail",
+                                            style = PoppinsTypography().labelMedium,
+                                            fontWeight = FontWeight.Bold
+                                        )
+                                        Text(
+                                            text = "Frame extracted from video",
+                                            style = PoppinsTypography().bodySmall.copy(fontSize = 11.sp),
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                                        )
+                                    }
+                                    IconButton(
+                                        onClick = { viewModel.updateThumbnailUrl("") },
+                                        modifier = Modifier.size(32.dp)
+                                    ) {
+                                        Icon(
+                                            Icons.Default.Close,
+                                            contentDescription = "Clear custom thumbnail",
+                                            tint = MaterialTheme.colorScheme.error,
+                                            modifier = Modifier.size(18.dp)
+                                        )
+                                    }
+                                }
+                            }
+                        } else {
+                            OutlinedTextField(
+                                value = state.thumbnailUrl,
+                                onValueChange = { viewModel.updateThumbnailUrl(it) },
+                                label = { Text("Custom Thumbnail URL") },
+                                modifier = Modifier.fillMaxWidth(),
+                                singleLine = true,
+                                shape = RoundedCornerShape(12.dp)
+                            )
+                        }
                     }
                 }
             }
@@ -458,7 +632,7 @@ fun CreateMediaGuideScreen(
                             fontWeight = FontWeight.Bold
                         )
                         Text(
-                            text = "Concrete field steps farmers can follow even offline.",
+                            text = "Practical action steps to follow offline.",
                             style = PoppinsTypography().bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -721,6 +895,8 @@ private fun MediaTypeSelectorToggle(
 private fun LiveMediaPreviewCard(
     state: org.vaulture.project.features.home.presentation.viewmodel.CreateMediaGuideUiState
 ) {
+    var isPlaying by remember(state.mediaUrl) { mutableStateOf(false) }
+
     Card(
         shape = RoundedCornerShape(18.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHigh),
@@ -733,6 +909,7 @@ private fun LiveMediaPreviewCard(
                     .aspectRatio(16f / 9f)
                     .background(Color.Black)
             ) {
+                // Keep the preview thumbnail always rendered underneath so it previews as it plays
                 AsyncImage(
                     model = state.thumbnailUrl.ifBlank { "https://images.unsplash.com/photo-1592982537447-7440770cbfc9?w=800" },
                     contentDescription = null,
@@ -740,78 +917,120 @@ private fun LiveMediaPreviewCard(
                     contentScale = ContentScale.Crop
                 )
 
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .background(
-                            Brush.verticalGradient(
-                                listOf(Color.Transparent, Color.Black.copy(alpha = 0.75f))
+                if (isPlaying && state.mediaType == GuideMediaType.VIDEO && state.mediaUrl.isNotBlank()) {
+                    NativeVideoPlayer(
+                        url = state.mediaUrl,
+                        modifier = Modifier.fillMaxSize(),
+                        autoPlay = true
+                    )
+                    IconButton(
+                        onClick = { isPlaying = false },
+                        modifier = Modifier
+                            .align(Alignment.TopEnd)
+                            .padding(8.dp)
+                            .background(Color.Black.copy(alpha = 0.6f), CircleShape)
+                            .size(28.dp)
+                    ) {
+                        Icon(
+                            Icons.Default.Close,
+                            contentDescription = "Stop Preview",
+                            tint = Color.White,
+                            modifier = Modifier.size(16.dp)
+                        )
+                    }
+                } else {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .background(
+                                Brush.verticalGradient(
+                                    listOf(Color.Transparent, Color.Black.copy(alpha = 0.75f))
+                                )
                             )
-                        )
-                )
+                    )
 
-                // Category & Language badges
-                Row(
-                    modifier = Modifier
-                        .padding(12.dp)
-                        .align(Alignment.TopStart),
-                    horizontalArrangement = Arrangement.spacedBy(6.dp)
-                ) {
-                    Surface(
-                        shape = RoundedCornerShape(6.dp),
-                        color = MaterialTheme.colorScheme.primary
+                    // Category & Language badges
+                    Row(
+                        modifier = Modifier
+                            .padding(12.dp)
+                            .align(Alignment.TopStart),
+                        horizontalArrangement = Arrangement.spacedBy(6.dp)
                     ) {
-                        Text(
-                            text = state.category,
-                            style = PoppinsTypography().bodySmall.copy(fontSize = 11.sp),
-                            color = MaterialTheme.colorScheme.onPrimary,
-                            fontWeight = FontWeight.Bold,
-                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
-                        )
+                        Surface(
+                            shape = RoundedCornerShape(6.dp),
+                            color = MaterialTheme.colorScheme.primary
+                        ) {
+                            Text(
+                                text = state.category,
+                                style = PoppinsTypography().bodySmall.copy(fontSize = 11.sp),
+                                color = MaterialTheme.colorScheme.onPrimary,
+                                fontWeight = FontWeight.Bold,
+                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                            )
+                        }
+
+                        Surface(
+                            shape = RoundedCornerShape(6.dp),
+                            color = MaterialTheme.colorScheme.tertiary
+                        ) {
+                            Text(
+                                text = state.language,
+                                style = PoppinsTypography().bodySmall.copy(fontSize = 11.sp),
+                                color = MaterialTheme.colorScheme.onTertiary,
+                                fontWeight = FontWeight.Bold,
+                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                            )
+                        }
                     }
 
-                    Surface(
-                        shape = RoundedCornerShape(6.dp),
-                        color = MaterialTheme.colorScheme.tertiary
-                    ) {
-                        Text(
-                            text = state.language,
-                            style = PoppinsTypography().bodySmall.copy(fontSize = 11.sp),
-                            color = MaterialTheme.colorScheme.onTertiary,
-                            fontWeight = FontWeight.Bold,
-                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
-                        )
-                    }
-                }
-
-                // Play / Duration badge
-                Row(
-                    modifier = Modifier
-                        .padding(12.dp)
-                        .align(Alignment.BottomEnd),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Surface(
-                        shape = RoundedCornerShape(8.dp),
-                        color = Color.Black.copy(alpha = 0.75f)
-                    ) {
-                        Row(
-                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
-                            verticalAlignment = Alignment.CenterVertically
+                    // Centered Play button when video source is present
+                    if (state.mediaType == GuideMediaType.VIDEO && state.mediaUrl.isNotBlank()) {
+                        Surface(
+                            shape = CircleShape,
+                            color = MaterialTheme.colorScheme.primary.copy(alpha = 0.9f),
+                            modifier = Modifier
+                                .align(Alignment.Center)
+                                .size(48.dp)
+                                .clickable { isPlaying = true }
                         ) {
                             Icon(
-                                imageVector = if (state.mediaType == GuideMediaType.VIDEO) Icons.Default.PlayArrow else Icons.Default.Headphones,
-                                contentDescription = null,
-                                tint = Color.White,
-                                modifier = Modifier.size(14.dp)
+                                imageVector = Icons.Default.PlayArrow,
+                                contentDescription = "Preview Video",
+                                tint = MaterialTheme.colorScheme.onPrimary,
+                                modifier = Modifier.padding(10.dp).fillMaxSize()
                             )
-                            Spacer(Modifier.width(4.dp))
-                            Text(
-                                text = state.durationText.ifBlank { "05:00" },
-                                color = Color.White,
-                                style = PoppinsTypography().bodySmall.copy(fontSize = 11.sp),
-                                fontWeight = FontWeight.Bold
-                            )
+                        }
+                    }
+
+                    // Play / Duration badge
+                    Row(
+                        modifier = Modifier
+                            .padding(12.dp)
+                            .align(Alignment.BottomEnd),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Surface(
+                            shape = RoundedCornerShape(8.dp),
+                            color = Color.Black.copy(alpha = 0.75f)
+                        ) {
+                            Row(
+                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Icon(
+                                    imageVector = if (state.mediaType == GuideMediaType.VIDEO) Icons.Default.PlayArrow else Icons.Default.Headphones,
+                                    contentDescription = null,
+                                    tint = Color.White,
+                                    modifier = Modifier.size(14.dp)
+                                )
+                                Spacer(Modifier.width(4.dp))
+                                Text(
+                                    text = state.durationText.ifBlank { "05:00" },
+                                    color = Color.White,
+                                    style = PoppinsTypography().bodySmall.copy(fontSize = 11.sp),
+                                    fontWeight = FontWeight.Bold
+                                )
+                            }
                         }
                     }
                 }
@@ -826,7 +1045,7 @@ private fun LiveMediaPreviewCard(
                 )
                 Spacer(Modifier.height(4.dp))
                 Text(
-                    text = "By ${state.instructor.ifBlank { "Community Farmer" }}",
+                    text = "By ${state.instructor.ifBlank { "Community Creator" }}",
                     style = PoppinsTypography().bodySmall,
                     color = MaterialTheme.colorScheme.primary
                 )

@@ -51,7 +51,7 @@ fun PulseFab(onClick: () -> Unit) {
         )
         Spacer(Modifier.width(8.dp))
         Text(
-            "Daily Check-In",
+            "Daily Field Scouting",
             fontWeight = FontWeight.Bold,
             style = PoppinsTypography().titleMedium
         )

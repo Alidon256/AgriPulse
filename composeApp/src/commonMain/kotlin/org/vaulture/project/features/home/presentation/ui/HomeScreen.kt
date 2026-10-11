@@ -58,7 +58,6 @@ import org.vaulture.project.presentation.ui.components.FarmerCommunityHubsSectio
 import org.vaulture.project.presentation.ui.components.FarmerConnectSection
 import org.vaulture.project.presentation.ui.components.VideoGuideCard
 import org.vaulture.project.presentation.ui.components.VideoGuidePlayerDialog
-import org.vaulture.project.features.home.domain.model.DEFAULT_VIDEO_GUIDES
 import org.vaulture.project.features.home.domain.model.FarmerVideoGuide
 import org.vaulture.project.features.home.domain.repository.VideoGuideRepository
 import org.vaulture.project.features.space.domain.model.Space
@@ -307,9 +306,9 @@ private fun RecommendedSection(
 
     val (greetingTitle, targetTags) = remember(currentHour) {
         when (currentHour) {
-            in 5..11 -> "Start Your Day ☀️" to listOf("energy", "upbeat", "motivation", "focus")
-            in 12..17 -> "Afternoon Focus 🧠" to listOf("focus", "productivity", "concentration", "chill")
-            else -> "Wind Down for Sleep 🌙" to listOf("sleep", "relaxation", "calm", "peaceful")
+            in 5..11 -> "Morning Field Radio 🌾" to listOf("pest-control", "maize", "organic", "energy", "focus")
+            in 12..17 -> "Agronomic Extension Guides 📻" to listOf("soil-health", "drought", "mulching", "intercropping", "yield", "irrigation", "water-harvesting")
+            else -> "Evening Agricultural Audio 🌙" to listOf("organic-pesticide", "neem", "cassava", "disease-prevention", "crop-health")
         }
     }
 
@@ -320,7 +319,7 @@ private fun RecommendedSection(
             track.tags.any { tag -> targetTags.contains(tag.lowercase()) }
         }
 
-        if (filtered.isNotEmpty()) filtered.take(10) else tracks.shuffled().take(10)
+        if (filtered.isNotEmpty()) filtered.take(10) else tracks.take(10)
     }
 
     Column {
@@ -412,15 +411,15 @@ fun DashboardMobileLayout(
     val rhythmState by viewModel.uiState.collectAsState()
     val currentHour = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).hour
     val greeting = when (currentHour) {
-        in 0..11 -> "Good Morning 🌾,"
-        in 12..17 -> "Good Afternoon ☀️,"
-        else -> "Good Evening 🌙,"
+        in 0..11 -> "Good Morning,"
+        in 12..17 -> "Good Afternoon,"
+        else -> "Good Evening,"
     }
 
     val videoGuideRepository: VideoGuideRepository = koinInject()
     val videoGuides by remember(videoGuideRepository) {
         videoGuideRepository.getVideoGuidesStream()
-    }.collectAsState(initial = DEFAULT_VIDEO_GUIDES)
+    }.collectAsState(initial = emptyList())
 
     var activeVideo by remember { mutableStateOf<FarmerVideoGuide?>(null) }
 
@@ -450,7 +449,7 @@ fun DashboardMobileLayout(
                     )
                 )
                 Text(
-                    text = "${" "}Farmer ${user?.effectiveName ?: "..."}",
+                    text = "${" "}${user?.effectiveName ?: "..."}",
                     style = PoppinsTypography().bodyLarge.copy(
                         fontSize = 18.sp,
                         fontWeight = FontWeight.Bold,
@@ -516,20 +515,13 @@ fun DashboardMobileLayout(
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Column {
+                    Column(modifier = Modifier.weight(1f)) {
                         Text(
-                            text = "Field Demonstration Videos 🎥",
+                            text = "Recommendations",
                             style = PoppinsTypography().headlineMedium.copy(
                                 fontSize = 18.sp,
                                 fontWeight = FontWeight.Bold,
                                 color = MaterialTheme.colorScheme.onSurface
-                            )
-                        )
-                        Text(
-                            text = "Visual guides on pest scouting, zai pits, and drip lines",
-                            style = PoppinsTypography().bodySmall.copy(
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                fontSize = 12.sp
                             )
                         )
                     }
@@ -577,16 +569,53 @@ fun DashboardMobileLayout(
                 }
 
                 Spacer(Modifier.height(8.dp))
-
-                LazyRow(
-                    contentPadding = PaddingValues(horizontal = 16.dp),
-                    horizontalArrangement = Arrangement.spacedBy(14.dp)
-                ) {
-                    items(videoGuides, key = { it.id }) { video ->
-                        VideoGuideCard(
-                            video = video,
-                            onClick = { activeVideo = video }
-                        )
+                if (videoGuides.isEmpty()) {
+                    Card(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp, vertical = 6.dp),
+                        shape = RoundedCornerShape(16.dp),
+                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.45f))
+                    ) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(16.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(
+                                    text = "No Video Guides Added Yet",
+                                    style = PoppinsTypography().titleSmall,
+                                    fontWeight = FontWeight.Bold
+                                )
+                                Text(
+                                    text = "Add video guides from your profile to share tips and advice!",
+                                    style = PoppinsTypography().bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                            Spacer(Modifier.width(12.dp))
+                            Button(
+                                onClick = { navController.navigate(Routes.CREATE_MEDIA_GUIDE) },
+                                shape = RoundedCornerShape(10.dp)
+                            ) {
+                                Text("Add Guide")
+                            }
+                        }
+                    }
+                } else {
+                    LazyRow(
+                        contentPadding = PaddingValues(horizontal = 16.dp),
+                        horizontalArrangement = Arrangement.spacedBy(14.dp)
+                    ) {
+                        items(videoGuides, key = { it.id }) { video ->
+                            VideoGuideCard(
+                                video = video,
+                                onClick = { activeVideo = video }
+                            )
+                        }
                     }
                 }
             }
@@ -635,7 +664,7 @@ fun DashboardMobileLayout(
 
         item {
             SectionHeader(
-                title = "Agronomic Actions",
+                title = "Daily Actions",
                 icon = Icons.Default.SelfImprovement
             )
             Spacer(Modifier.height(8.dp))
@@ -693,15 +722,15 @@ fun DashboardWebLayout(
     val wellnessState by wellnessViewModel.uiState.collectAsState()
     val currentHour = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).hour
     val greeting = when (currentHour) {
-        in 0..11 -> "Good Morning 🌾,"
-        in 12..17 -> "Good Afternoon ☀️,"
-        else -> "Good Evening 🌙,"
+        in 0..11 -> "Good Morning,"
+        in 12..17 -> "Good Afternoon,"
+        else -> "Good Evening,"
     }
 
     val videoGuideRepository: VideoGuideRepository = koinInject()
     val videoGuides by remember(videoGuideRepository) {
         videoGuideRepository.getVideoGuidesStream()
-    }.collectAsState(initial = DEFAULT_VIDEO_GUIDES)
+    }.collectAsState(initial = emptyList())
 
     var activeVideo by remember { mutableStateOf<FarmerVideoGuide?>(null) }
     var isRightPaneCollapsed by remember { mutableStateOf(false) }
@@ -740,7 +769,7 @@ fun DashboardWebLayout(
                         )
                     )
                     Text(
-                        text = "${" "}Farmer ${user?.effectiveName ?: "..."}",
+                        text = "${" "}${user?.effectiveName ?: "..."}",
                         style = PoppinsTypography().bodyLarge.copy(
                             fontSize = 18.sp,
                             fontWeight = FontWeight.Bold,
@@ -763,7 +792,7 @@ fun DashboardWebLayout(
             }
             item {
                 SectionHeader(
-                    title = "Agronomic Actions",
+                    title = "Daily Actions",
                     icon = Icons.Default.SelfImprovement
                 )
                 Row(
@@ -825,14 +854,16 @@ fun DashboardWebLayout(
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Text(
-                            text = "Field Demonstration Videos 🎥",
-                            style = PoppinsTypography().headlineMedium.copy(
-                                fontSize = 18.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = MaterialTheme.colorScheme.onSurface
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = "Recommendations",
+                                style = PoppinsTypography().headlineMedium.copy(
+                                    fontSize = 18.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.onSurface
+                                )
                             )
-                        )
+                        }
                         Row(
                             horizontalArrangement = Arrangement.spacedBy(8.dp),
                             verticalAlignment = Alignment.CenterVertically
@@ -876,12 +907,50 @@ fun DashboardWebLayout(
                         }
                     }
                     Spacer(Modifier.height(8.dp))
-                    LazyRow(
-                        contentPadding = PaddingValues(horizontal = 16.dp),
-                        horizontalArrangement = Arrangement.spacedBy(14.dp)
-                    ) {
-                        items(videoGuides, key = { it.id }) { video ->
-                            VideoGuideCard(video = video, onClick = { activeVideo = video })
+                    if (videoGuides.isEmpty()) {
+                        Card(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 16.dp, vertical = 6.dp),
+                            shape = RoundedCornerShape(16.dp),
+                            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.45f))
+                        ) {
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(16.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.SpaceBetween
+                            ) {
+                                Column(modifier = Modifier.weight(1f)) {
+                                    Text(
+                                        text = "No Field Videos Published Yet",
+                                        style = PoppinsTypography().titleSmall,
+                                        fontWeight = FontWeight.Bold
+                                    )
+                                    Text(
+                                        text = "Add the first agronomic demonstration from your profile!",
+                                        style = PoppinsTypography().bodySmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                }
+                                Spacer(Modifier.width(12.dp))
+                                Button(
+                                    onClick = { navController.navigate(Routes.CREATE_MEDIA_GUIDE) },
+                                    shape = RoundedCornerShape(10.dp)
+                                ) {
+                                    Text("Add Video")
+                                }
+                            }
+                        }
+                    } else {
+                        LazyRow(
+                            contentPadding = PaddingValues(horizontal = 16.dp),
+                            horizontalArrangement = Arrangement.spacedBy(14.dp)
+                        ) {
+                            items(videoGuides, key = { it.id }) { video ->
+                                VideoGuideCard(video = video, onClick = { activeVideo = video })
+                            }
                         }
                     }
                 }
@@ -966,7 +1035,7 @@ fun DashboardWebLayout(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        "Your Farm Resilience Vault",
+                        "Your Resilience Vault",
                         style = PoppinsTypography().titleLarge,
                         fontWeight = FontWeight.Bold,
                         modifier = Modifier.weight(1f)
@@ -1005,7 +1074,7 @@ fun DashboardWebLayout(
                         )
                         Spacer(Modifier.width(12.dp))
                         Text(
-                            "AgriPulse is a safe community for smallholder farmers. Share crop observations, pest warnings, and agricultural advice with mutual respect.",
+                            "AgriPulse is a safe community. Share observations, insights, and advice with mutual respect.",
                             style = PoppinsTypography().bodySmall,
                             color = MaterialTheme.colorScheme.onSecondaryContainer
                         )

@@ -90,7 +90,7 @@ fun WeatherForecastWidget(
                     )
                     Spacer(Modifier.width(8.dp))
                     Text(
-                        "Climate & Rainfall Forecast",
+                        "Weather & Climate",
                         style = PoppinsTypography().titleSmall,
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.onSurface

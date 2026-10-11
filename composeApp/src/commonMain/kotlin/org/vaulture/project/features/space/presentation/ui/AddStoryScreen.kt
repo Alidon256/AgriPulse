@@ -3,6 +3,7 @@ package org.vaulture.project.presentation.ui.screens.space
 import androidx.compose.animation.*
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -12,9 +13,12 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.AddAPhoto
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.People
+import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Public
+import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material.icons.filled.Videocam
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -33,6 +37,8 @@ import coil3.compose.AsyncImage
 import org.vaulture.project.core.domain.MediaFile
 import org.vaulture.project.core.theme.PoppinsTypography
 import org.vaulture.project.core.util.ImagePicker
+import org.vaulture.project.core.util.NativeVideoPlayer
+import org.vaulture.project.core.util.VideoPicker
 import org.vaulture.project.features.space.domain.model.Story
 import org.vaulture.project.features.space.presentation.viewmodel.SpaceViewModel
 import kotlin.text.forEach
@@ -53,8 +59,8 @@ fun AddStoryScreen(
     var progressMessage by remember { mutableStateOf<String?>(null) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
     var showImagePicker by remember { mutableStateOf(false) }
+    var showVideoPicker by remember { mutableStateOf(false) }
     var selectedVisibility by remember { mutableStateOf(Story.Visibility.PUBLIC) }
-
 
     ImagePicker(
         show = showImagePicker,
@@ -63,8 +69,26 @@ fun AddStoryScreen(
             if (imageData != null) {
                 selectedMediaFile = MediaFile(
                     content = imageData,
+                    thumbnail = null,
                     type = Story.ContentType.PHOTO,
                     aspectRatio = 1f
+                )
+            }
+        }
+    )
+
+    VideoPicker(
+        show = showVideoPicker,
+        onVideoSelected = { videoBytes, metadata ->
+            showVideoPicker = false
+            if (videoBytes != null) {
+                selectedMediaFile = MediaFile(
+                    content = videoBytes,
+                    thumbnail = metadata?.thumbnailBytes,
+                    type = Story.ContentType.VIDEO,
+                    aspectRatio = metadata?.aspectRatio ?: 1.777f,
+                    duration = metadata?.durationText,
+                    localUri = metadata?.localUri
                 )
             }
         }
@@ -89,6 +113,7 @@ fun AddStoryScreen(
                 isFeed = isFeed,
                 aspectRatio = selectedMediaFile?.aspectRatio ?: 1f,
                 visibility = selectedVisibility,
+                duration = selectedMediaFile?.duration,
                 onProgress = { progressMessage = it },
                 onSuccess = {
                     isLoading = false
@@ -169,20 +194,97 @@ fun AddStoryScreen(
 
                         AnimatedVisibility(visible = selectedMediaFile != null) {
                             selectedMediaFile?.let { file ->
+                                var isPlayingPreview by remember(file) { mutableStateOf(false) }
+
                                 Box(
                                     modifier = Modifier
                                         .fillMaxWidth()
-                                        .aspectRatio(1.77f)
+                                        .aspectRatio(if (file.aspectRatio in 0.5f..2.5f) file.aspectRatio else 1.77f)
                                         .clip(RoundedCornerShape(24.dp))
                                         .background(MaterialTheme.colorScheme.surfaceVariant),
                                     contentAlignment = Alignment.Center
                                 ) {
+                                    // Persistent thumbnail preview underneath
                                     AsyncImage(
-                                        model = file.content,
-                                        contentDescription = null,
+                                        model = file.thumbnail ?: file.content,
+                                        contentDescription = "Selected media preview",
                                         contentScale = ContentScale.Crop,
                                         modifier = Modifier.fillMaxSize()
                                     )
+
+                                    if (file.type == Story.ContentType.VIDEO) {
+                                        if (isPlayingPreview && !file.localUri.isNullOrBlank()) {
+                                            NativeVideoPlayer(
+                                                url = file.localUri,
+                                                modifier = Modifier.fillMaxSize(),
+                                                autoPlay = true
+                                            )
+                                            IconButton(
+                                                onClick = { isPlayingPreview = false },
+                                                modifier = Modifier
+                                                    .align(Alignment.TopStart)
+                                                    .padding(12.dp)
+                                                    .background(Color.Black.copy(alpha = 0.6f), CircleShape)
+                                                    .size(32.dp)
+                                            ) {
+                                                Icon(
+                                                    Icons.Default.Close,
+                                                    contentDescription = "Stop Preview",
+                                                    tint = Color.White,
+                                                    modifier = Modifier.size(18.dp)
+                                                )
+                                            }
+                                        } else {
+                                            Surface(
+                                                shape = CircleShape,
+                                                color = Color.Black.copy(alpha = 0.65f),
+                                                modifier = Modifier
+                                                    .size(52.dp)
+                                                    .clickable {
+                                                        if (!file.localUri.isNullOrBlank()) {
+                                                            isPlayingPreview = true
+                                                        }
+                                                    }
+                                            ) {
+                                                Icon(
+                                                    Icons.Default.PlayArrow,
+                                                    contentDescription = "Preview Video",
+                                                    tint = Color.White,
+                                                    modifier = Modifier.padding(12.dp).fillMaxSize()
+                                                )
+                                            }
+                                        }
+
+                                        if (!file.duration.isNullOrBlank()) {
+                                            Surface(
+                                                shape = RoundedCornerShape(8.dp),
+                                                color = Color.Black.copy(alpha = 0.75f),
+                                                modifier = Modifier
+                                                    .align(Alignment.BottomEnd)
+                                                    .padding(12.dp)
+                                            ) {
+                                                Row(
+                                                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                                                    verticalAlignment = Alignment.CenterVertically
+                                                ) {
+                                                    Icon(
+                                                        Icons.Default.Schedule,
+                                                        contentDescription = null,
+                                                        tint = Color.White,
+                                                        modifier = Modifier.size(14.dp)
+                                                    )
+                                                    Spacer(Modifier.width(4.dp))
+                                                    Text(
+                                                        text = file.duration,
+                                                        color = Color.White,
+                                                        style = MaterialTheme.typography.labelSmall,
+                                                        fontWeight = FontWeight.Bold
+                                                    )
+                                                }
+                                            }
+                                        }
+                                    }
+
                                     IconButton(
                                         onClick = { selectedMediaFile = null },
                                         modifier = Modifier
@@ -191,11 +293,10 @@ fun AddStoryScreen(
                                             .background(Color.Black.copy(alpha = 0.5f), CircleShape)
                                     ) {
                                         Icon(
-                                            Icons.Default.AddAPhoto,
-                                            null,
+                                            Icons.Default.Close,
+                                            contentDescription = "Remove media",
                                             tint = Color.White,
-                                            modifier = Modifier
-                                                .size(20.dp)
+                                            modifier = Modifier.size(20.dp)
                                         )
                                     }
                                 }
@@ -211,10 +312,10 @@ fun AddStoryScreen(
                                 modifier = Modifier.weight(1f),
                                 shape = RoundedCornerShape(16.dp),
                                 color = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.4f),
-                                border = if (selectedMediaFile == null)
-                                    null
-                                else
+                                border = if (selectedMediaFile?.type == Story.ContentType.PHOTO)
                                     BorderStroke(2.dp, MaterialTheme.colorScheme.primary)
+                                else
+                                    null
                             ) {
                                 Row(
                                     modifier = Modifier.padding(16.dp),
@@ -226,9 +327,37 @@ fun AddStoryScreen(
                                         null,
                                         tint = MaterialTheme.colorScheme.primary
                                     )
-                                    Spacer(Modifier.width(12.dp))
+                                    Spacer(Modifier.width(10.dp))
                                     Text(
-                                        "Add Image",
+                                        "Add Photo",
+                                        style = PoppinsTypography().labelLarge
+                                    )
+                                }
+                            }
+
+                            Surface(
+                                onClick = { showVideoPicker = true },
+                                modifier = Modifier.weight(1f),
+                                shape = RoundedCornerShape(16.dp),
+                                color = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.4f),
+                                border = if (selectedMediaFile?.type == Story.ContentType.VIDEO)
+                                    BorderStroke(2.dp, MaterialTheme.colorScheme.primary)
+                                else
+                                    null
+                            ) {
+                                Row(
+                                    modifier = Modifier.padding(16.dp),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.Center
+                                ) {
+                                    Icon(
+                                        Icons.Default.Videocam,
+                                        null,
+                                        tint = MaterialTheme.colorScheme.primary
+                                    )
+                                    Spacer(Modifier.width(10.dp))
+                                    Text(
+                                        "Add Video",
                                         style = PoppinsTypography().labelLarge
                                     )
                                 }

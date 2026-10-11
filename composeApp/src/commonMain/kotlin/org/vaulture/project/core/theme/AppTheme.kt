@@ -158,6 +158,8 @@ fun AppTheme(
         AppThemeMode.DARK -> true
     }
 
+    SystemAppearance(isDark = isDark)
+
     val colorScheme = when (themePalette) {
         ThemePalette.OCEAN -> if (isDark) OceanDarkColors else OceanLightColors
         ThemePalette.NATURE -> if (isDark) NatureDarkColors else NatureLightColors

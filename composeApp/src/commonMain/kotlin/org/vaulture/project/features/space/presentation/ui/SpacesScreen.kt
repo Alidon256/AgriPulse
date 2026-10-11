@@ -244,7 +244,7 @@ fun SpaceScreenExpandable(
                         )
                         Spacer(Modifier.width(12.dp))
                         Text(
-                            "This is a farmer community hub. Please share sustainable practices and be supportive of all growers in AgriPulse.",
+                            "AgriPulse is a supportive community hub. Share insights and advice with mutual respect.",
                             style = PoppinsTypography().bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -274,7 +274,7 @@ fun SpaceScreenExpandable(
                         onSearch = {},
                         isExpanded = isSearchExpanded,
                         onToggleExpanded = { isSearchExpanded = !isSearchExpanded },
-                        placeholderText = "Search farmer hubs (e.g. Maize, Pest Control, Irrigation)...",
+                        placeholderText = "Search hubs...",
                         modifier = Modifier.padding(top = 16.dp, bottom = 8.dp)
                     )
                     if (!isSearchExpanded) {
@@ -288,7 +288,7 @@ fun SpaceScreenExpandable(
             floatingActionButton = {
                 if (!isSearchExpanded) {
                     val icon = if (selectedFilter == SpaceFilter.Spaces) Icons.Default.Add else Icons.Default.Edit
-                    val label = if (selectedFilter == SpaceFilter.Spaces) "Create Farmer Hub" else "Share Field Update"
+                    val label = if (selectedFilter == SpaceFilter.Spaces) "Create Hub" else "Share Update"
 
                     ExtendedFloatingActionButton(
                         text = { Text(label) },
@@ -375,7 +375,7 @@ fun SpaceScreenExpandable(
                     )
                     Spacer(Modifier.width(12.dp))
                     Text(
-                        "This is a farmer community hub. Please share sustainable practices and be supportive of all growers in the AgriPulse community.",
+                        "AgriPulse is a supportive community hub. Share insights and advice with mutual respect.",
                         style = PoppinsTypography().bodySmall,
                         color = MaterialTheme.colorScheme.onSecondaryContainer
                     )
@@ -425,7 +425,7 @@ fun SpacesScreenCompat(
                     onSearch = {},
                     isExpanded = isSearchExpanded,
                     onToggleExpanded = { isSearchExpanded = !isSearchExpanded },
-                    placeholderText = "Search farmer hubs (e.g. Maize, Pest Control, Irrigation)...",
+                    placeholderText = "Search hubs...",
                     modifier = Modifier.padding(top = 16.dp, bottom = 8.dp)
                 )
                 if (!isSearchExpanded) {

@@ -5,10 +5,13 @@ import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
+import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -34,12 +37,14 @@ fun StaggeredStoryItem(
     story: Story,
     currentUserId: String,
     onLikeClick: () -> Unit,
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    onEditClick: (() -> Unit)? = null
 ) {
     val isLiked = story.likedBy.contains(currentUserId)
     val likeScale by animateFloatAsState(if (isLiked) 1.2f else 1f, label = "LikeScale")
 
-    val hasImage = !story.contentUrl.isNullOrBlank()
+    val displayImageUrl = story.thumbnailUrl?.ifBlank { null } ?: story.contentUrl
+    val hasImage = !displayImageUrl.isNullOrBlank()
 
     val randomHeight = remember { (180..240).random().dp }
 
@@ -69,16 +74,16 @@ fun StaggeredStoryItem(
                 .clip(RoundedCornerShape(16.dp))
                 .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.07f))
         ) {
-            if(hasImage){
+            if (hasImage) {
                 AsyncImage(
-                    model =story.contentUrl,
+                    model = displayImageUrl,
                     contentDescription = null,
                     contentScale = ContentScale.Crop,
                     modifier = Modifier
                         .fillMaxSize()
                         .clip(RoundedCornerShape(16.dp))
                 )
-            }else{
+            } else {
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
@@ -91,6 +96,56 @@ fun StaggeredStoryItem(
                             )
                         )
                 )
+            }
+
+            if (story.contentType == Story.ContentType.VIDEO) {
+                Surface(
+                    shape = RoundedCornerShape(12.dp),
+                    color = Color.Black.copy(alpha = 0.65f),
+                    modifier = Modifier
+                        .padding(10.dp)
+                        .align(Alignment.TopStart)
+                ) {
+                    Row(
+                        modifier = Modifier.padding(horizontal = 6.dp, vertical = 4.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.PlayArrow,
+                            contentDescription = "Video",
+                            tint = Color.White,
+                            modifier = Modifier.size(16.dp)
+                        )
+                        if (!story.duration.isNullOrBlank()) {
+                            Spacer(Modifier.width(3.dp))
+                            Text(
+                                text = story.duration,
+                                color = Color.White,
+                                style = MaterialTheme.typography.labelSmall,
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 10.sp
+                            )
+                        }
+                    }
+                }
+            }
+
+            if (story.userId == currentUserId && onEditClick != null) {
+                IconButton(
+                    onClick = onEditClick,
+                    modifier = Modifier
+                        .align(Alignment.TopEnd)
+                        .padding(8.dp)
+                        .size(30.dp)
+                        .background(Color.Black.copy(alpha = 0.6f), CircleShape)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Edit,
+                        contentDescription = "Edit Memory",
+                        tint = Color.White,
+                        modifier = Modifier.size(16.dp)
+                    )
+                }
             }
 
             Box(

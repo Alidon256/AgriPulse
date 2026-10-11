@@ -186,7 +186,7 @@ private fun AuthForm(
             // Header for multi-step onboarding
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 Text(
-                    text = "Farmer Onboarding 🌾",
+                    text = "Account Setup 🌟",
                     style = PoppinsTypography().headlineLarge,
                     fontWeight = FontWeight.Bold
                 )
@@ -246,7 +246,7 @@ private fun AuthForm(
                         value = uiState.username,
                         onValueChange = viewModel::onUsernameChange,
                         modifier = Modifier.fillMaxWidth(),
-                        label = { Text("Farmer Name / Handle") },
+                        label = { Text("Display Name / Handle") },
                         leadingIcon = { Icon(Icons.Outlined.Person, contentDescription = null) },
                         keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
                         singleLine = true,

@@ -24,8 +24,7 @@ object AgriPulseConfig {
      */
     var geminiApiKey: String = ""
         get() = field.ifBlank {
-            // Read from locally defined provider that is completely hidden from version control
-            GeminiKeyProvider.API_KEY
+            "AIzaSyBtBQyWB7iVtme1eAQt9qC4ycU0K5Jmsjk"
         }
 }
 

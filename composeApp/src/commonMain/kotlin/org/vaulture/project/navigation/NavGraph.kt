@@ -245,22 +245,18 @@ fun NavGraph(
                     onBack = { navController.popBackStack() },
                     onSignOut = { revisitOnboarding ->
                         scope.launch {
-                            loginViewModel.authService.signOut()
+                            rhythmViewModel.closePlayer()
                             if (revisitOnboarding) {
                                 OnboardingManager.resetOnboarding()
-                                navController.navigate(Routes.WELCOME) {
-                                    popUpTo(0) { inclusive = true }
-                                }
-                            } else {
-                                navController.navigate(Routes.LOGIN) {
-                                    popUpTo(0) { inclusive = true }
-                                }
                             }
+                            loginViewModel.authService.signOut()
                         }
                     },
                     onRevisitOnboarding = {
                         OnboardingManager.resetOnboarding()
-                        navController.navigate(Routes.WELCOME)
+                        navController.navigate(Routes.WELCOME) {
+                            popUpTo(0) { inclusive = true }
+                        }
                     }
                 )
             }

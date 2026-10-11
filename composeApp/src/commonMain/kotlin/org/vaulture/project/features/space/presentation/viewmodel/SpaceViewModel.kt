@@ -29,6 +29,7 @@ data class SpaceUiState(
 
 enum class ProfileFilter {
     MY_POSTS,
+    VIDEOS,
     LIKED,
     BOOKMARKED
 }
@@ -127,17 +128,36 @@ open class SpaceViewModel(
     val communityFarmers: StateFlow<List<User>> = _communityFarmers.asStateFlow()
 
     init {
-        listenToStoriesAndPosts()
-        listenToSpaces()
-        listenToCommunityFarmers()
         viewModelScope.launch {
             auth.authStateChanged.collect { firebaseUser ->
                 if (firebaseUser != null) {
+                    _error.value = null
+                    _uiState.update { state -> state.copy(error = null) }
                     loadUserProfile(firebaseUser.uid)
+                    listenToStoriesAndPosts()
+                    listenToSpaces()
+                    listenToCommunityFarmers()
                 } else {
                     _userProfile.value = null
+                    _feeds.value = emptyList()
+                    _filteredFeeds.value = emptyList()
+                    _spaces.value = emptyList()
+                    _filteredSpaces.value = emptyList()
+                    _communityFarmers.value = emptyList()
                 }
             }
+        }
+    }
+
+    fun refreshData() {
+        val uid = auth.currentUser?.uid
+        if (uid != null) {
+            _error.value = null
+            _uiState.update { it.copy(error = null, isLoading = true) }
+            loadUserProfile(uid)
+            listenToStoriesAndPosts()
+            listenToSpaces()
+            listenToCommunityFarmers()
         }
     }
 
@@ -303,6 +323,7 @@ open class SpaceViewModel(
         isFeed: Boolean = false,
         aspectRatio: Float = 1.0f,
         visibility: Story.Visibility = Story.Visibility.PUBLIC,
+        duration: String? = null,
         onProgress: (String) -> Unit = {},
         onSuccess: () -> Unit = {},
         onError: (String) -> Unit = {}
@@ -314,7 +335,17 @@ open class SpaceViewModel(
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
             onProgress("Uploading story...")
-            spaceUseCases.createStory(finalTitle, finalBytes, finalFileName)
+            spaceUseCases.createStory(
+                title = finalTitle,
+                mediaBytes = finalBytes,
+                mediaFileName = finalFileName,
+                thumbnailBytes = thumbnailContent,
+                contentType = contentType,
+                isFeed = isFeed,
+                aspectRatio = aspectRatio,
+                visibility = visibility,
+                duration = duration
+            )
                 .onSuccess {
                     _uiState.update { it.copy(isLoading = false) }
                     onSuccess()
@@ -340,6 +371,33 @@ open class SpaceViewModel(
             spaceUseCases.createPost(text, spaceId, spaceName, imageBytes, imageFileName)
                 .onSuccess { onSuccess() }
                 .onFailure { e -> onError(e.message ?: "Failed to create post") }
+        }
+    }
+
+    fun editPost(
+        postId: String,
+        newText: String,
+        spaceId: String? = null,
+        mediaBytes: ByteArray? = null,
+        mediaFileName: String? = null,
+        thumbnailBytes: ByteArray? = null,
+        newVisibility: Story.Visibility? = null,
+        duration: String? = null,
+        onSuccess: () -> Unit = {},
+        onError: (String) -> Unit = {}
+    ) {
+        if (newText.isBlank()) return
+        viewModelScope.launch {
+            _uiState.update { it.copy(isLoading = true) }
+            spaceUseCases.updatePost(postId, newText, spaceId, mediaBytes, mediaFileName, thumbnailBytes, newVisibility, duration)
+                .onSuccess {
+                    _uiState.update { it.copy(isLoading = false) }
+                    onSuccess()
+                }
+                .onFailure { e ->
+                    _uiState.update { it.copy(isLoading = false, error = e.message) }
+                    onError(e.message ?: "Failed to update memory")
+                }
         }
     }
 
@@ -467,6 +525,9 @@ open class SpaceViewModel(
                         _isLoadingProfileData.value = false
                     }
                     .launchIn(viewModelScope)
+            }
+            ProfileFilter.VIDEOS -> {
+                _isLoadingProfileData.value = false
             }
             ProfileFilter.LIKED -> {
                 spaceUseCases.getPostsStream()

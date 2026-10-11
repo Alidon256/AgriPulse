@@ -12,7 +12,6 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.*
@@ -60,7 +59,7 @@ fun WelcomeScreen(
                 )
         )
 
-        // 3. Foreground Content
+        // 3. Foreground Content with Constrained Card Width for Large Screens
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -86,13 +85,13 @@ fun WelcomeScreen(
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // Glassmorphism Frosted Container for Text & Actions
+            // Glassmorphism Container with Width Constraint for Desktop/Tablet
             Box(
                 modifier = Modifier
+                    .widthIn(max = 520.dp)
                     .fillMaxWidth()
-                    .widthIn(max = 480.dp)
                     .clip(RoundedCornerShape(28.dp))
-                    .background(Color.Black.copy(alpha = 0.45f))
+                    .background(Color.Black.copy(alpha = 0.55f))
                     .border(
                         border = BorderStroke(
                             width = 1.dp,
@@ -105,14 +104,14 @@ fun WelcomeScreen(
                         ),
                         shape = RoundedCornerShape(28.dp)
                     )
-                    .padding(horizontal = 24.dp, vertical = 28.dp)
+                    .padding(horizontal = 28.dp, vertical = 32.dp)
             ) {
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.Center
                 ) {
                     Text(
-                        text = "Empowering Smallholder Farmers. Boosting Harvest Yields.",
+                        text = "Empowering Growth, Mindfulness & Community.",
                         fontSize = 20.sp,
                         fontWeight = FontWeight.Bold,
                         style = PoppinsTypography().bodyLarge.copy(
@@ -160,7 +159,7 @@ fun WelcomeScreen(
                         elevation = ButtonDefaults.buttonElevation(defaultElevation = 4.dp)
                     ) {
                         Text(
-                            text = "Get Started as a Farmer 🌾",
+                            text = "Get Started 🌾",
                             fontSize = 16.sp,
                             style = PoppinsTypography().bodyMedium,
                             fontWeight = FontWeight.Bold,
@@ -210,4 +209,3 @@ fun WelcomeScreenPreview() {
         onLoginClicked = {}
     )
 }
-

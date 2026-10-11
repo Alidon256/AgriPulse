@@ -4,6 +4,7 @@ import androidx.compose.animation.*
 import androidx.compose.animation.core.spring
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -27,6 +28,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
@@ -46,6 +48,7 @@ import org.vaulture.project.features.wellness.domain.model.WellnessStats
 import org.vaulture.project.features.wellness.domain.model.WellnessType
 import org.vaulture.project.navigation.Routes
 import org.vaulture.project.presentation.ui.components.AIPrivacyCard
+import org.vaulture.project.presentation.ui.components.EditMemoryDialog
 import org.vaulture.project.presentation.ui.components.ProfileAvatar
 import org.vaulture.project.presentation.ui.components.PulseBadgeCard
 import org.vaulture.project.presentation.ui.components.SectionHeader
@@ -56,6 +59,12 @@ import org.vaulture.project.presentation.ui.components.WellnessActionItem
 import org.vaulture.project.presentation.ui.components.WellnessStatsRow
 import org.vaulture.project.features.space.presentation.viewmodel.ProfileFilter
 import org.vaulture.project.features.space.presentation.viewmodel.SpaceViewModel
+import org.vaulture.project.features.home.domain.model.FarmerVideoGuide
+import org.vaulture.project.features.home.domain.repository.VideoGuideRepository
+import org.vaulture.project.presentation.ui.components.VideoGuidePlayerDialog
+import org.koin.compose.koinInject
+import dev.gitlive.firebase.Firebase
+import dev.gitlive.firebase.auth.auth
 import kotlin.time.Clock
 
 @Composable
@@ -72,15 +81,60 @@ fun ProfileScreen(
 ) {
     val statsState by wellnessViewModel.uiState.collectAsState()
     val user by spaceViewModel.userProfile.collectAsState()
-    val currentUserId = user?.uid ?: ""
+    val authUid = remember {
+        try { Firebase.auth.currentUser?.uid ?: "" } catch (_: Throwable) { "" }
+    }
+    val effectiveUserId = (user?.uid ?: "").ifBlank { authUid }
+    val currentUserId = effectiveUserId
 
     val myPosts by spaceViewModel.userStories.collectAsState()
     val likedPosts by spaceViewModel.userLikedStories.collectAsState()
     val bookmarkedPosts by spaceViewModel.userBookmarkedStories.collectAsState()
     val isLoading by spaceViewModel.isLoadingProfileData.collectAsState()
 
+    val videoGuideRepository: VideoGuideRepository = koinInject()
+    val allVideoGuides by videoGuideRepository.getVideoGuidesStream().collectAsState(initial = emptyList())
+    val myVideoGuides = remember(allVideoGuides, effectiveUserId, user) {
+        allVideoGuides.filter { guide ->
+            (effectiveUserId.isNotBlank() && guide.userId == effectiveUserId) ||
+            (guide.userId.isBlank() && (
+                (!user?.displayName.isNullOrBlank() && guide.instructor.contains(user?.displayName ?: "", ignoreCase = true)) ||
+                (!user?.username.isNullOrBlank() && guide.instructor.contains(user?.username ?: "", ignoreCase = true))
+            ))
+        }
+    }
+    var activeVideoGuide by remember { mutableStateOf<FarmerVideoGuide?>(null) }
+    var editingStory by remember { mutableStateOf<Story?>(null) }
+
+    if (activeVideoGuide != null) {
+        VideoGuidePlayerDialog(
+            video = activeVideoGuide!!,
+            onDismiss = { activeVideoGuide = null }
+        )
+    }
+
+    if (editingStory != null) {
+        EditMemoryDialog(
+            story = editingStory!!,
+            onDismiss = { editingStory = null },
+            onSave = { newText, newMediaBytes, fileName, newThumbnailBytes, newVisibility, newDuration ->
+                spaceViewModel.editPost(
+                    postId = editingStory!!.storyId,
+                    newText = newText,
+                    mediaBytes = newMediaBytes,
+                    mediaFileName = fileName,
+                    thumbnailBytes = newThumbnailBytes,
+                    newVisibility = newVisibility,
+                    duration = newDuration,
+                    onSuccess = { editingStory = null }
+                )
+            }
+        )
+    }
+
     val displayedStories = when (selectedFilter) {
         ProfileFilter.MY_POSTS -> myPosts
+        ProfileFilter.VIDEOS -> emptyList()
         ProfileFilter.LIKED -> likedPosts
         ProfileFilter.BOOKMARKED -> bookmarkedPosts
     }
@@ -111,7 +165,10 @@ fun ProfileScreen(
                     currentUserId = currentUserId,
                     onCommentClick = onCommentClick,
                     spaceViewModel = spaceViewModel,
-                    onNavigateToEditProfile = onNavigateToEditProfile
+                    onNavigateToEditProfile = onNavigateToEditProfile,
+                    myVideoGuides = myVideoGuides,
+                    onVideoClick = { activeVideoGuide = it },
+                    onEditStory = { editingStory = it }
                 )
             } else {
                 ProfileScreenCompact(
@@ -125,7 +182,11 @@ fun ProfileScreen(
                     currentUserId = currentUserId,
                     onCommentClick = onCommentClick,
                     onNavigateToSettings = onNavigateToSettings,
-                    onNavigateToEditProfile = onNavigateToEditProfile
+                    onNavigateToEditProfile = onNavigateToEditProfile,
+                    navController = navController,
+                    myVideoGuides = myVideoGuides,
+                    onVideoClick = { activeVideoGuide = it },
+                    onEditStory = { editingStory = it }
                 )
             }
         }
@@ -145,7 +206,11 @@ private fun ProfileScreenCompact(
     isLoading: Boolean,
     displayedStories: List<Story>,
     currentUserId: String,
-    onNavigateToEditProfile: () -> Unit
+    onNavigateToEditProfile: () -> Unit,
+    navController: NavController,
+    myVideoGuides: List<FarmerVideoGuide>,
+    onVideoClick: (FarmerVideoGuide) -> Unit,
+    onEditStory: (Story) -> Unit
 ) {
 
     val bannerHeight = 200.dp
@@ -223,7 +288,7 @@ private fun ProfileScreenCompact(
                         .padding(top = 8.dp)
                 ) {
                     Text(
-                        user?.displayName ?: user?.username?: "Farmer",
+                        user?.displayName ?: user?.username?: "User",
                         style = PoppinsTypography().headlineSmall,
                         fontWeight = FontWeight.Bold
                     )
@@ -232,7 +297,30 @@ private fun ProfileScreenCompact(
                         style = PoppinsTypography().bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
-                    Spacer(Modifier.height(24.dp))
+                    Spacer(Modifier.height(14.dp))
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(10.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        OutlinedButton(
+                            onClick = onNavigateToEditProfile,
+                            shape = RoundedCornerShape(12.dp)
+                        ) {
+                            Icon(Icons.Default.Edit, null, modifier = Modifier.size(16.dp))
+                            Spacer(Modifier.width(6.dp))
+                            Text("Edit Profile", style = PoppinsTypography().labelMedium)
+                        }
+                        Button(
+                            onClick = { navController.navigate(Routes.CREATE_MEDIA_GUIDE) },
+                            shape = RoundedCornerShape(12.dp),
+                            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
+                        ) {
+                            Icon(Icons.Default.Videocam, null, modifier = Modifier.size(16.dp))
+                            Spacer(Modifier.width(6.dp))
+                            Text("Add Video Guide", style = PoppinsTypography().labelMedium)
+                        }
+                    }
+                    Spacer(Modifier.height(16.dp))
                 }
             }
 
@@ -248,7 +336,10 @@ private fun ProfileScreenCompact(
             item(span = StaggeredGridItemSpan.FullLine) {
                 Column {
                     Row(
-                        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .horizontalScroll(rememberScrollState())
+                            .padding(horizontal = 16.dp),
                         horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
                         ProfileFilter.entries.forEach { filter ->
@@ -258,6 +349,7 @@ private fun ProfileScreenCompact(
                                 label = {
                                     Text(when(filter) {
                                         ProfileFilter.MY_POSTS -> "My Posts"
+                                        ProfileFilter.VIDEOS -> "Videos (${myVideoGuides.size})"
                                         ProfileFilter.LIKED -> "Liked"
                                         ProfileFilter.BOOKMARKED -> "Saved"
                                     })
@@ -266,6 +358,7 @@ private fun ProfileScreenCompact(
                                     Icon(
                                         imageVector = when(filter) {
                                             ProfileFilter.MY_POSTS -> Icons.Default.Article
+                                            ProfileFilter.VIDEOS -> Icons.Default.Videocam
                                             ProfileFilter.LIKED -> Icons.Default.Favorite
                                             ProfileFilter.BOOKMARKED -> Icons.Default.Bookmark
                                         },
@@ -280,7 +373,137 @@ private fun ProfileScreenCompact(
                 }
             }
 
-            if (isLoading) {
+            if (selectedFilter == ProfileFilter.VIDEOS) {
+                if (myVideoGuides.isEmpty()) {
+                    item(span = StaggeredGridItemSpan.FullLine) {
+                        Card(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 8.dp, vertical = 16.dp),
+                            shape = RoundedCornerShape(20.dp),
+                            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
+                        ) {
+                            Column(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(24.dp),
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                verticalArrangement = Arrangement.spacedBy(12.dp)
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Videocam,
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.primary,
+                                    modifier = Modifier.size(48.dp)
+                                )
+                                Text(
+                                    text = "No Video Guides Added Yet",
+                                    style = PoppinsTypography().titleMedium,
+                                    fontWeight = FontWeight.Bold
+                                )
+                                Text(
+                                    text = "You haven't uploaded any video guides from your profile yet. Share field demonstrations or pest management videos directly from your farm!",
+                                    style = PoppinsTypography().bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                                )
+                                Button(
+                                    onClick = { navController.navigate(Routes.CREATE_MEDIA_GUIDE) },
+                                    shape = RoundedCornerShape(12.dp),
+                                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
+                                ) {
+                                    Icon(Icons.Default.Add, null, modifier = Modifier.size(18.dp))
+                                    Spacer(Modifier.width(6.dp))
+                                    Text("Add Video Guide", style = PoppinsTypography().labelMedium)
+                                }
+                            }
+                        }
+                    }
+                } else {
+                    items(myVideoGuides, key = { it.id }, span = { StaggeredGridItemSpan.FullLine }) { video ->
+                        Card(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 4.dp, vertical = 4.dp)
+                                .clip(RoundedCornerShape(16.dp))
+                                .clickable { onVideoClick(video) },
+                            shape = RoundedCornerShape(16.dp),
+                            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHigh)
+                        ) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth().padding(12.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Box(
+                                    modifier = Modifier
+                                        .size(110.dp, 75.dp)
+                                        .clip(RoundedCornerShape(12.dp))
+                                        .background(Color.Black)
+                                ) {
+                                    AsyncImage(
+                                        model = video.thumbnailUrl,
+                                        contentDescription = video.title,
+                                        modifier = Modifier.fillMaxSize(),
+                                        contentScale = ContentScale.Crop
+                                    )
+                                    Surface(
+                                        shape = CircleShape,
+                                        color = Color.Black.copy(alpha = 0.65f),
+                                        modifier = Modifier.size(32.dp).align(Alignment.Center)
+                                    ) {
+                                        Icon(
+                                            Icons.Default.PlayArrow,
+                                            contentDescription = "Play",
+                                            tint = Color.White,
+                                            modifier = Modifier.padding(6.dp).fillMaxSize()
+                                        )
+                                    }
+                                }
+                                Spacer(Modifier.width(14.dp))
+                                Column(modifier = Modifier.weight(1f)) {
+                                    Surface(
+                                        shape = RoundedCornerShape(6.dp),
+                                        color = MaterialTheme.colorScheme.primaryContainer
+                                    ) {
+                                        Text(
+                                            text = video.category,
+                                            style = PoppinsTypography().labelSmall,
+                                            color = MaterialTheme.colorScheme.primary,
+                                            fontWeight = FontWeight.Bold,
+                                            modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                                        )
+                                    }
+                                    Spacer(Modifier.height(4.dp))
+                                    Text(
+                                        text = video.title,
+                                        style = PoppinsTypography().bodyMedium,
+                                        fontWeight = FontWeight.SemiBold,
+                                        maxLines = 2,
+                                        overflow = TextOverflow.Ellipsis
+                                    )
+                                    Spacer(Modifier.height(4.dp))
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        horizontalArrangement = Arrangement.SpaceBetween
+                                    ) {
+                                        Text(
+                                            text = video.instructor,
+                                            style = PoppinsTypography().labelSmall,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                                        )
+                                        Text(
+                                            text = video.durationText,
+                                            style = PoppinsTypography().labelSmall,
+                                            color = MaterialTheme.colorScheme.primary,
+                                            fontWeight = FontWeight.Bold
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            } else if (isLoading) {
                 item(span = StaggeredGridItemSpan.FullLine) {
                     Box(Modifier.fillMaxWidth().padding(32.dp), contentAlignment = Alignment.Center) {
                         CircularProgressIndicator()
@@ -310,7 +533,8 @@ private fun ProfileScreenCompact(
                         story = story,
                         currentUserId = currentUserId,
                         onLikeClick = { spaceViewModel.toggleLike(story) },
-                        onClick = { onCommentClick(story.storyId) }
+                        onClick = { onCommentClick(story.storyId) },
+                        onEditClick = { onEditStory(story) }
                     )
                 }
             }
@@ -345,7 +569,10 @@ private fun ProfileScreenExpanded(
     currentUserId: String,
     onCommentClick: (String) -> Unit,
     spaceViewModel: SpaceViewModel,
-    onNavigateToEditProfile: () -> Unit
+    onNavigateToEditProfile: () -> Unit,
+    myVideoGuides: List<FarmerVideoGuide>,
+    onVideoClick: (FarmerVideoGuide) -> Unit,
+    onEditStory: (Story) -> Unit
 ) {
     val wellnessState by wellnessViewModel.uiState.collectAsState()
     var selectedRailItem by remember { mutableStateOf("Profile") }
@@ -505,7 +732,7 @@ private fun ProfileScreenExpanded(
                         Spacer(Modifier.width(32.dp))
                         Column {
                             Text(
-                                user?.displayName ?: user?.username?: "Farmer",
+                                user?.displayName ?: user?.username?: "User",
                                 style = PoppinsTypography().displaySmall,
                                 fontWeight = FontWeight.Bold,
                                 maxLines = 1,
@@ -518,6 +745,26 @@ private fun ProfileScreenExpanded(
                                 maxLines = 1,
                                 overflow = TextOverflow.Ellipsis
                             )
+                            Spacer(Modifier.height(14.dp))
+                            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                                OutlinedButton(
+                                    onClick = onNavigateToEditProfile,
+                                    shape = RoundedCornerShape(12.dp)
+                                ) {
+                                    Icon(Icons.Default.Edit, null, modifier = Modifier.size(16.dp))
+                                    Spacer(Modifier.width(6.dp))
+                                    Text("Edit Profile", style = PoppinsTypography().labelMedium)
+                                }
+                                Button(
+                                    onClick = { navController.navigate(Routes.CREATE_MEDIA_GUIDE) },
+                                    shape = RoundedCornerShape(12.dp),
+                                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
+                                ) {
+                                    Icon(Icons.Default.Videocam, null, modifier = Modifier.size(16.dp))
+                                    Spacer(Modifier.width(6.dp))
+                                    Text("Add Video Guide", style = PoppinsTypography().labelMedium)
+                                }
+                            }
                         }
                     }
                 }
@@ -534,7 +781,10 @@ private fun ProfileScreenExpanded(
                 item(span = StaggeredGridItemSpan.FullLine) {
                     Column {
                         Row(
-                            modifier = Modifier.fillMaxWidth().padding(start = 16.dp,end = 16.dp,top = 24.dp),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .horizontalScroll(rememberScrollState())
+                                .padding(start = 16.dp, end = 16.dp, top = 24.dp),
                             horizontalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
                             ProfileFilter.entries.forEach { filter ->
@@ -544,6 +794,7 @@ private fun ProfileScreenExpanded(
                                     label = {
                                         Text(when(filter) {
                                             ProfileFilter.MY_POSTS -> "My Posts"
+                                            ProfileFilter.VIDEOS -> "Videos (${myVideoGuides.size})"
                                             ProfileFilter.LIKED -> "Liked"
                                             ProfileFilter.BOOKMARKED -> "Saved"
                                         })
@@ -552,6 +803,7 @@ private fun ProfileScreenExpanded(
                                         Icon(
                                             imageVector = when(filter) {
                                                 ProfileFilter.MY_POSTS -> Icons.AutoMirrored.Filled.Article
+                                                ProfileFilter.VIDEOS -> Icons.Default.Videocam
                                                 ProfileFilter.LIKED -> Icons.Default.Favorite
                                                 ProfileFilter.BOOKMARKED -> Icons.Default.Bookmark
                                             },
@@ -566,7 +818,137 @@ private fun ProfileScreenExpanded(
                     }
                 }
 
-                if (isLoading) {
+                if (selectedFilter == ProfileFilter.VIDEOS) {
+                    if (myVideoGuides.isEmpty()) {
+                        item(span = StaggeredGridItemSpan.FullLine) {
+                            Card(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 16.dp, vertical = 24.dp),
+                                shape = RoundedCornerShape(20.dp),
+                                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
+                            ) {
+                                Column(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(32.dp),
+                                    horizontalAlignment = Alignment.CenterHorizontally,
+                                    verticalArrangement = Arrangement.spacedBy(14.dp)
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.Videocam,
+                                        contentDescription = null,
+                                        tint = MaterialTheme.colorScheme.primary,
+                                        modifier = Modifier.size(54.dp)
+                                    )
+                                    Text(
+                                        text = "No Video Guides Added Yet",
+                                        style = PoppinsTypography().titleLarge,
+                                        fontWeight = FontWeight.Bold
+                                    )
+                                    Text(
+                                        text = "Upload demonstration field videos to share organic farming practices and tips with the AgriPulse community directly from your profile.",
+                                        style = PoppinsTypography().bodyMedium,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                                    )
+                                    Button(
+                                        onClick = { navController.navigate(Routes.CREATE_MEDIA_GUIDE) },
+                                        shape = RoundedCornerShape(12.dp),
+                                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
+                                    ) {
+                                        Icon(Icons.Default.Add, null, modifier = Modifier.size(18.dp))
+                                        Spacer(Modifier.width(6.dp))
+                                        Text("Add Video Guide", style = PoppinsTypography().labelMedium)
+                                    }
+                                }
+                            }
+                        }
+                    } else {
+                        items(myVideoGuides, key = { it.id }, span = { StaggeredGridItemSpan.FullLine }) { video ->
+                            Card(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 8.dp, vertical = 6.dp)
+                                    .clip(RoundedCornerShape(18.dp))
+                                    .clickable { onVideoClick(video) },
+                                shape = RoundedCornerShape(18.dp),
+                                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHigh)
+                            ) {
+                                Row(
+                                    modifier = Modifier.fillMaxWidth().padding(16.dp),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Box(
+                                        modifier = Modifier
+                                            .size(130.dp, 85.dp)
+                                            .clip(RoundedCornerShape(14.dp))
+                                            .background(Color.Black)
+                                    ) {
+                                        AsyncImage(
+                                            model = video.thumbnailUrl,
+                                            contentDescription = video.title,
+                                            modifier = Modifier.fillMaxSize(),
+                                            contentScale = ContentScale.Crop
+                                        )
+                                        Surface(
+                                            shape = CircleShape,
+                                            color = Color.Black.copy(alpha = 0.65f),
+                                            modifier = Modifier.size(36.dp).align(Alignment.Center)
+                                        ) {
+                                            Icon(
+                                                Icons.Default.PlayArrow,
+                                                contentDescription = "Play",
+                                                tint = Color.White,
+                                                modifier = Modifier.padding(8.dp).fillMaxSize()
+                                            )
+                                        }
+                                    }
+                                    Spacer(Modifier.width(16.dp))
+                                    Column(modifier = Modifier.weight(1f)) {
+                                        Surface(
+                                            shape = RoundedCornerShape(6.dp),
+                                            color = MaterialTheme.colorScheme.primaryContainer
+                                        ) {
+                                            Text(
+                                                text = video.category,
+                                                style = PoppinsTypography().labelSmall,
+                                                color = MaterialTheme.colorScheme.primary,
+                                                fontWeight = FontWeight.Bold,
+                                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp)
+                                            )
+                                        }
+                                        Spacer(Modifier.height(6.dp))
+                                        Text(
+                                            text = video.title,
+                                            style = PoppinsTypography().titleSmall,
+                                            fontWeight = FontWeight.SemiBold,
+                                            maxLines = 2,
+                                            overflow = TextOverflow.Ellipsis
+                                        )
+                                        Spacer(Modifier.height(6.dp))
+                                        Row(
+                                            modifier = Modifier.fillMaxWidth(),
+                                            horizontalArrangement = Arrangement.SpaceBetween
+                                        ) {
+                                            Text(
+                                                text = video.instructor,
+                                                style = PoppinsTypography().bodySmall,
+                                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                                            )
+                                            Text(
+                                                text = video.durationText,
+                                                style = PoppinsTypography().bodySmall,
+                                                color = MaterialTheme.colorScheme.primary,
+                                                fontWeight = FontWeight.Bold
+                                            )
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                } else if (isLoading) {
                     item(span = StaggeredGridItemSpan.FullLine) {
                         Box(Modifier.fillMaxWidth().padding(32.dp), contentAlignment = Alignment.Center) {
                             CircularProgressIndicator()
@@ -596,7 +978,8 @@ private fun ProfileScreenExpanded(
                             story = story,
                             currentUserId = currentUserId,
                             onLikeClick = { spaceViewModel.toggleLike(story) },
-                            onClick = { onCommentClick(story.storyId) }
+                            onClick = { onCommentClick(story.storyId) },
+                            onEditClick = { onEditStory(story) }
                         )
                     }
                 }
@@ -761,7 +1144,7 @@ fun FarmerCredentialsCard(
                     )
                     Spacer(Modifier.width(8.dp))
                     Text(
-                        text = farmName ?: "Farm Profile & Credentials",
+                        text = farmName ?: "Profile & Credentials",
                         style = PoppinsTypography().titleMedium,
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.onSurface

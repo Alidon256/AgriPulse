@@ -2,10 +2,17 @@ package org.vaulture.project.features.home.presentation.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import dev.gitlive.firebase.Firebase
+import dev.gitlive.firebase.auth.FirebaseAuth
+import dev.gitlive.firebase.auth.auth
+import dev.gitlive.firebase.storage.FirebaseStorage
+import dev.gitlive.firebase.storage.storage
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import org.vaulture.project.core.util.VideoMetadata
+import org.vaulture.project.core.util.upload
 import org.vaulture.project.features.home.domain.model.FarmerVideoGuide
 import org.vaulture.project.features.home.domain.model.RhythmTrack
 import org.vaulture.project.features.home.domain.repository.RhythmRepository
@@ -30,17 +37,34 @@ data class CreateMediaGuideUiState(
     val keyTakeaways: List<String> = listOf("Scout fields early morning", "Apply organic biological repellent"),
     val tags: List<String> = listOf("pestcontrol", "organic", "maize"),
     val isPublishing: Boolean = false,
+    val isUploadingMedia: Boolean = false,
+    val uploadProgressMessage: String? = null,
     val publishSuccess: Boolean = false,
     val errorMessage: String? = null
 )
 
 class CreateMediaGuideViewModel(
     private val videoGuideRepository: VideoGuideRepository,
-    private val rhythmRepository: RhythmRepository
+    private val rhythmRepository: RhythmRepository,
+    private val auth: FirebaseAuth? = null,
+    private val storage: FirebaseStorage? = null
 ) : ViewModel() {
+
+    private val firebaseAuth: FirebaseAuth? get() = auth ?: try { Firebase.auth } catch (_: Throwable) { null }
+    private val firebaseStorage: FirebaseStorage? get() = storage ?: try { Firebase.storage } catch (_: Throwable) { null }
 
     private val _uiState = MutableStateFlow(CreateMediaGuideUiState())
     val uiState = _uiState.asStateFlow()
+
+    init {
+        try {
+            firebaseAuth?.currentUser?.displayName?.let { name ->
+                if (name.isNotBlank()) {
+                    _uiState.update { it.copy(instructor = name) }
+                }
+            }
+        } catch (_: Throwable) {}
+    }
 
     fun setMediaType(type: GuideMediaType) {
         _uiState.update {
@@ -61,8 +85,123 @@ class CreateMediaGuideViewModel(
     fun updateCategory(category: String) = _uiState.update { it.copy(category = category) }
     fun updateLanguage(language: String) = _uiState.update { it.copy(language = language) }
     fun updateDuration(duration: String) = _uiState.update { it.copy(durationText = duration) }
-    fun updateMediaUrl(url: String) = _uiState.update { it.copy(mediaUrl = url, errorMessage = null) }
+    fun updateMediaUrl(url: String) {
+        val trimmed = url.trim()
+        val ytId = extractYouTubeVideoId(trimmed)
+        _uiState.update { state ->
+            val updatedThumb = if (ytId.isNotBlank()) {
+                "https://img.youtube.com/vi/$ytId/hqdefault.jpg"
+            } else {
+                state.thumbnailUrl
+            }
+            state.copy(
+                mediaUrl = url,
+                thumbnailUrl = updatedThumb,
+                errorMessage = null
+            )
+        }
+    }
     fun updateThumbnailUrl(url: String) = _uiState.update { it.copy(thumbnailUrl = url) }
+
+    private suspend fun uploadFile(bytes: ByteArray, path: String): String {
+        val currentStorage = firebaseStorage ?: throw IllegalStateException("Firebase Storage is unavailable")
+        val ref = currentStorage.reference(path)
+        ref.upload(bytes)
+        return ref.getDownloadUrl()
+    }
+
+    fun handleVideoPicked(videoBytes: ByteArray, metadata: VideoMetadata?) {
+        viewModelScope.launch {
+            _uiState.update {
+                it.copy(
+                    isUploadingMedia = true,
+                    uploadProgressMessage = "Extracting video metadata & uploading...",
+                    errorMessage = null
+                )
+            }
+
+            try {
+                val currentUid = firebaseAuth?.currentUser?.uid ?: "user"
+                val timestamp = kotlin.time.Clock.System.now().toEpochMilliseconds()
+                val randomKey = Random.nextLong(1000, 9999)
+
+                // 1. Upload extracted thumbnail if available
+                var thumbUrl = _uiState.value.thumbnailUrl
+                if (metadata?.thumbnailBytes != null) {
+                    _uiState.update { it.copy(uploadProgressMessage = "Uploading extracted video thumbnail...") }
+                    thumbUrl = uploadFile(
+                        metadata.thumbnailBytes,
+                        "video_guides/thumbnails/${currentUid}_${timestamp}_${randomKey}.jpg"
+                    )
+                }
+
+                // 2. Upload video file
+                _uiState.update { it.copy(uploadProgressMessage = "Uploading video file...") }
+                val ext = metadata?.fileName?.substringAfterLast('.', "mp4") ?: "mp4"
+                val videoUrl = uploadFile(
+                    videoBytes,
+                    "video_guides/videos/${currentUid}_${timestamp}_${randomKey}.$ext"
+                )
+
+                _uiState.update {
+                    it.copy(
+                        mediaUrl = videoUrl,
+                        thumbnailUrl = thumbUrl,
+                        durationText = metadata?.durationText?.ifBlank { it.durationText } ?: it.durationText,
+                        isUploadingMedia = false,
+                        uploadProgressMessage = null
+                    )
+                }
+            } catch (e: Exception) {
+                _uiState.update {
+                    it.copy(
+                        isUploadingMedia = false,
+                        uploadProgressMessage = null,
+                        errorMessage = "Failed to upload video: ${e.message ?: "Unknown error"}"
+                    )
+                }
+            }
+        }
+    }
+
+    fun handleThumbnailPicked(imageBytes: ByteArray) {
+        viewModelScope.launch {
+            _uiState.update {
+                it.copy(
+                    isUploadingMedia = true,
+                    uploadProgressMessage = "Uploading custom thumbnail...",
+                    errorMessage = null
+                )
+            }
+
+            try {
+                val currentUid = firebaseAuth?.currentUser?.uid ?: "user"
+                val timestamp = kotlin.time.Clock.System.now().toEpochMilliseconds()
+                val randomKey = Random.nextLong(1000, 9999)
+
+                val thumbUrl = uploadFile(
+                    imageBytes,
+                    "video_guides/thumbnails/${currentUid}_${timestamp}_${randomKey}_custom.jpg"
+                )
+
+                _uiState.update {
+                    it.copy(
+                        thumbnailUrl = thumbUrl,
+                        isUploadingMedia = false,
+                        uploadProgressMessage = null
+                    )
+                }
+            } catch (e: Exception) {
+                _uiState.update {
+                    it.copy(
+                        isUploadingMedia = false,
+                        uploadProgressMessage = null,
+                        errorMessage = "Failed to upload thumbnail: ${e.message ?: "Unknown error"}"
+                    )
+                }
+            }
+        }
+    }
 
     fun addKeyTakeaway(takeaway: String) {
         if (takeaway.isNotBlank() && !_uiState.value.keyTakeaways.contains(takeaway.trim())) {
@@ -100,18 +239,17 @@ class CreateMediaGuideViewModel(
             return
         }
 
-        val effectiveMediaUrl = if (state.mediaUrl.isNotBlank()) {
-            state.mediaUrl.trim()
-        } else if (state.mediaType == GuideMediaType.VIDEO) {
-            "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4"
-        } else {
-            "https://cdn.pixabay.com/download/audio/2022/05/27/audio_1808fbf07a.mp3"
+        if (state.mediaUrl.isBlank()) {
+            _uiState.update { it.copy(errorMessage = "Please provide a valid video stream or YouTube URL for your guide.") }
+            return
         }
 
+        val effectiveMediaUrl = state.mediaUrl.trim()
+        val currentUid = firebaseAuth?.currentUser?.uid ?: ""
         val effectiveInstructor = if (state.instructor.isNotBlank()) {
             state.instructor.trim()
         } else {
-            "Community Farmer Extension"
+            firebaseAuth?.currentUser?.displayName ?: "Community Creator"
         }
 
         _uiState.update { it.copy(isPublishing = true, errorMessage = null) }
@@ -122,18 +260,15 @@ class CreateMediaGuideViewModel(
             if (state.mediaType == GuideMediaType.VIDEO) {
                 val videoGuide = FarmerVideoGuide(
                     id = generatedId,
+                    userId = currentUid,
                     title = state.title.trim(),
                     description = state.description.trim(),
                     instructor = effectiveInstructor,
                     durationText = state.durationText.ifBlank { "05:00" },
                     category = state.category,
-                    thumbnailUrl = state.thumbnailUrl,
+                    thumbnailUrl = state.thumbnailUrl.trim(),
                     videoUrl = effectiveMediaUrl,
-                    youtubeVideoId = if (effectiveMediaUrl.contains("youtube.com") || effectiveMediaUrl.contains("youtu.be")) {
-                        effectiveMediaUrl.substringAfterLast("/").substringAfterLast("v=")
-                    } else {
-                        ""
-                    },
+                    youtubeVideoId = extractYouTubeVideoId(effectiveMediaUrl),
                     keyTakeaways = state.keyTakeaways,
                     language = state.language,
                     tags = state.tags
@@ -145,7 +280,7 @@ class CreateMediaGuideViewModel(
                     title = state.title.trim(),
                     artist = effectiveInstructor,
                     album = "${state.category} • ${state.language}",
-                    thumbnailUrl = state.thumbnailUrl,
+                    thumbnailUrl = state.thumbnailUrl.trim(),
                     duration = state.durationText.ifBlank { "05:00" },
                     tags = state.tags,
                     listenerCount = 1,
@@ -166,5 +301,16 @@ class CreateMediaGuideViewModel(
                 )
             }
         }
+    }
+
+    private fun extractYouTubeVideoId(url: String): String {
+        val trimmed = url.trim()
+        val pattern = Regex("(?:youtube\\.com/(?:[^/]+/.+/|(?:v|e(?:mbed)?)/|.*[?&]v=)|youtu\\.be/)([^\"&?/\\s]{11})", RegexOption.IGNORE_CASE)
+        val match = pattern.find(trimmed)
+        if (match != null) return match.groupValues[1]
+        if (trimmed.length == 11 && trimmed.matches(Regex("^[a-zA-Z0-9_-]{11}$"))) {
+            return trimmed
+        }
+        return ""
     }
 }

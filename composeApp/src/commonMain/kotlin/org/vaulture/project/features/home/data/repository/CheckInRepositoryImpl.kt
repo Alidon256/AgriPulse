@@ -40,9 +40,9 @@ class CheckInRepositoryImpl(
     }
 
     override fun getDailyQuestions(): List<String> = listOf(
-        "How frequently have you felt overwhelmed or stressed in the last few days?",
-        "How would you rate your sleep quality and energy levels recently?",
-        "Have you experienced difficulty concentrating or making decisions?",
-        "How often do you feel supported by your friends, family, or community?"
+        "How would you rate the overall vigor and leaf color of your crops today?",
+        "Are you noticing any signs of pest activity, insect feeding, or leaf spots?",
+        "How optimal is your field's soil moisture level for current crop growth?",
+        "How severely are weather conditions (drought, extreme heat, or heavy rain) affecting your field?"
     )
 }

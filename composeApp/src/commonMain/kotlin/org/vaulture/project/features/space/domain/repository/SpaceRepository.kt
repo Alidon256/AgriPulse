@@ -8,7 +8,17 @@ import org.vaulture.project.features.space.domain.model.Story
 
 interface SpaceRepository {
     fun getStoriesStream(): Flow<List<Story>>
-    suspend fun createStory(title: String, mediaBytes: ByteArray?, mediaFileName: String?): Result<Unit>
+    suspend fun createStory(
+        title: String,
+        mediaBytes: ByteArray?,
+        mediaFileName: String?,
+        thumbnailBytes: ByteArray? = null,
+        contentType: Story.ContentType = Story.ContentType.PHOTO,
+        isFeed: Boolean = false,
+        aspectRatio: Float = 1.0f,
+        visibility: Story.Visibility = Story.Visibility.PUBLIC,
+        duration: String? = null
+    ): Result<Unit>
 
     fun getPostsStream(filter: String = "ALL"): Flow<List<Story>>
     fun getSpacePostsStream(spaceId: String): Flow<List<Story>>
@@ -18,6 +28,16 @@ interface SpaceRepository {
         spaceName: String? = null,
         imageBytes: ByteArray? = null,
         imageFileName: String? = null
+    ): Result<Unit>
+    suspend fun updatePost(
+        postId: String,
+        newText: String,
+        spaceId: String? = null,
+        mediaBytes: ByteArray? = null,
+        mediaFileName: String? = null,
+        thumbnailBytes: ByteArray? = null,
+        newVisibility: Story.Visibility? = null,
+        duration: String? = null
     ): Result<Unit>
     suspend fun deletePost(postId: String): Result<Unit>
 

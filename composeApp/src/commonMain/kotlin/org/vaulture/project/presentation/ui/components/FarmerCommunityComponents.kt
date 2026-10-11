@@ -27,7 +27,6 @@ import androidx.compose.ui.window.Dialog
 import coil3.compose.AsyncImage
 import org.vaulture.project.core.domain.User
 import org.vaulture.project.core.theme.PoppinsTypography
-import org.vaulture.project.features.space.domain.model.DEFAULT_SPACES
 import org.vaulture.project.features.space.domain.model.Space
 
 data class PeerFarmer(
@@ -54,7 +53,7 @@ fun User.toPeerFarmer(): PeerFarmer {
         !farmingType.isNullOrBlank() -> farmingType!!
         !experienceLevel.isNullOrBlank() -> experienceLevel!!
         certifications.isNotEmpty() -> certifications.first()
-        else -> "Verified Farmer 🌾"
+        else -> "Verified Member 🌟"
     }
     val practices = mutableListOf<String>()
     if (!irrigationType.isNullOrBlank()) practices.add("Irrigation: $irrigationType")
@@ -70,59 +69,12 @@ fun User.toPeerFarmer(): PeerFarmer {
         avatarUrl = photoUrl?.ifBlank { null }
             ?: "https://ui-avatars.com/api/?name=${effectiveName.replace(' ', '+')}&background=2e7d32&color=fff",
         resilienceBadge = badge,
-        farmSize = farmSize ?: "Smallholder Plot",
+        farmSize = farmSize ?: "Active Member",
         agronomicPractices = practices,
-        bio = bio?.ifBlank { null } ?: "Smallholder farmer actively scouting crops and collaborating in AgriPulse community spaces."
+        bio = bio?.ifBlank { null } ?: "Actively participating and collaborating in community spaces."
     )
 }
 
-
-val DEFAULT_PEER_FARMERS = listOf(
-    PeerFarmer(
-        id = "farmer_grace",
-        name = "Grace Wanjiru",
-        location = "Eldoret, Kenya",
-        mainCrops = "Maize, Beans & Dairy",
-        avatarUrl = "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400&auto=format&fit=crop&q=80",
-        resilienceBadge = "Harvest Guard 🌾",
-        farmSize = "3.5 Acres",
-        agronomicPractices = listOf("Push-Pull Pest Trap", "Intercropping with Desmodium", "Hermetic Grain Storage"),
-        bio = "Smallholder farmer pioneering biological Fall Armyworm control. Keen to exchange seed selection techniques."
-    ),
-    PeerFarmer(
-        id = "farmer_emmanuel",
-        name = "Emmanuel Kiprop",
-        location = "Nakuru County, Kenya",
-        mainCrops = "Drip Hort & Tomatoes",
-        avatarUrl = "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&auto=format&fit=crop&q=80",
-        resilienceBadge = "Soil Master 🍃",
-        farmSize = "2.0 Acres",
-        agronomicPractices = listOf("Gravity Drip Irrigation", "Grass Straw Mulch", "Compost Teas"),
-        bio = "Specializing in dry-season off-grid drip irrigation. Happy to advise on water efficiency and drip maintenance."
-    ),
-    PeerFarmer(
-        id = "farmer_amina",
-        name = "Amina Nsubuga",
-        location = "Mbarara, Uganda",
-        mainCrops = "Cassava & Matooke",
-        avatarUrl = "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=400&auto=format&fit=crop&q=80",
-        resilienceBadge = "Agroforestry 🌳",
-        farmSize = "5.0 Acres",
-        agronomicPractices = listOf("Cassava Mosaic Scouting", "Shade Agroforestry", "Organic Bio-fertilizer"),
-        bio = "Community extension mentor. Managing clean-stem disease-free cassava cuttings and organic soil building."
-    ),
-    PeerFarmer(
-        id = "farmer_joseph",
-        name = "Joseph Chanda",
-        location = "Lusaka, Zambia",
-        mainCrops = "Sorghum & Groundnuts",
-        avatarUrl = "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400&auto=format&fit=crop&q=80",
-        resilienceBadge = "Climate Sentinel ☀️",
-        farmSize = "4.2 Acres",
-        agronomicPractices = listOf("Zai Planting Pits", "Drought-Hardy Cereals", "Collective Market Aggregation"),
-        bio = "Pioneering climate-smart pit planting for drought resilience. Active in grain pricing and buyer negotiations."
-    )
-)
 
 @Composable
 fun FarmerCommunityHubsSection(
@@ -131,8 +83,6 @@ fun FarmerCommunityHubsSection(
     onSeeAllClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val displaySpaces = if (spaces.isNotEmpty()) spaces else DEFAULT_SPACES
-
     Column(modifier = modifier.fillMaxWidth()) {
         Row(
             modifier = Modifier
@@ -141,9 +91,9 @@ fun FarmerCommunityHubsSection(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Column {
+            Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    text = "Farmer Community Hubs 🌾",
+                    text = "Community Hubs",
                     style = PoppinsTypography().headlineMedium.copy(
                         fontSize = 18.sp,
                         fontWeight = FontWeight.Bold,
@@ -151,7 +101,7 @@ fun FarmerCommunityHubsSection(
                     )
                 )
                 Text(
-                    text = "Peer discussion spaces on crops, pests, and markets",
+                    text = "Peer discussion spaces and community hubs",
                     style = PoppinsTypography().bodySmall.copy(
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         fontSize = 12.sp
@@ -171,15 +121,60 @@ fun FarmerCommunityHubsSection(
 
         Spacer(Modifier.height(8.dp))
 
-        LazyRow(
-            contentPadding = PaddingValues(horizontal = 16.dp),
-            horizontalArrangement = Arrangement.spacedBy(14.dp)
-        ) {
-            items(displaySpaces, key = { it.id }) { space ->
-                FarmerSpaceCard(
-                    space = space,
-                    onClick = { onSpaceClick(space) }
-                )
+        if (spaces.isNotEmpty()) {
+            LazyRow(
+                contentPadding = PaddingValues(horizontal = 16.dp),
+                horizontalArrangement = Arrangement.spacedBy(14.dp)
+            ) {
+                items(spaces, key = { it.id }) { space ->
+                    FarmerSpaceCard(
+                        space = space,
+                        onClick = { onSpaceClick(space) }
+                    )
+                }
+            }
+        } else {
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 4.dp),
+                shape = RoundedCornerShape(16.dp),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.45f))
+            ) {
+                Row(
+                    modifier = Modifier.padding(16.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(48.dp)
+                            .clip(CircleShape)
+                            .background(MaterialTheme.colorScheme.primaryContainer),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            Icons.Default.Groups,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(24.dp)
+                        )
+                    }
+                    Spacer(Modifier.width(14.dp))
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = "No community hubs yet",
+                            style = PoppinsTypography().titleSmall,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                        Text(
+                            text = "Explore spaces to connect with others and share daily practices.",
+                            style = PoppinsTypography().bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            fontSize = 12.sp
+                        )
+                    }
+                }
             }
         }
     }
@@ -244,7 +239,7 @@ fun FarmerSpaceCard(
                         Spacer(Modifier.width(4.dp))
                         val memberCount = space.memberIds.size
                         Text(
-                            text = if (memberCount == 1) "1 farmer" else "$memberCount farmers",
+                            text = if (memberCount == 1) "1 member" else "$memberCount members",
                             style = PoppinsTypography().labelSmall,
                             color = Color.White,
                             fontSize = 10.sp
@@ -305,11 +300,7 @@ fun FarmerConnectSection(
     var selectedFarmer by remember { mutableStateOf<PeerFarmer?>(null) }
 
     val displayFarmers = remember(farmers) {
-        if (farmers.isNotEmpty()) {
-            farmers.map { it.toPeerFarmer() }
-        } else {
-            DEFAULT_PEER_FARMERS
-        }
+        farmers.map { it.toPeerFarmer() }
     }
 
     if (selectedFarmer != null) {
@@ -331,20 +322,13 @@ fun FarmerConnectSection(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Column {
+            Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    text = "Meet & Connect with Fellow Farmers 👥",
+                    text = "Meet & Connect with Peers",
                     style = PoppinsTypography().headlineMedium.copy(
                         fontSize = 18.sp,
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.onSurface
-                    )
-                )
-                Text(
-                    text = "Exchange crop observations with experienced smallholders",
-                    style = PoppinsTypography().bodySmall.copy(
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        fontSize = 12.sp
                     )
                 )
             }
@@ -352,15 +336,64 @@ fun FarmerConnectSection(
 
         Spacer(Modifier.height(8.dp))
 
-        LazyRow(
-            contentPadding = PaddingValues(horizontal = 16.dp),
-            horizontalArrangement = Arrangement.spacedBy(14.dp)
-        ) {
-            items(displayFarmers, key = { it.id }) { farmer ->
-                PeerFarmerCard(
-                    farmer = farmer,
-                    onClick = { selectedFarmer = farmer }
-                )
+        if (displayFarmers.isNotEmpty()) {
+            LazyRow(
+                contentPadding = PaddingValues(horizontal = 16.dp),
+                horizontalArrangement = Arrangement.spacedBy(14.dp)
+            ) {
+                items(displayFarmers, key = { it.id }) { farmer ->
+                    PeerFarmerCard(
+                        farmer = farmer,
+                        onClick = { selectedFarmer = farmer }
+                    )
+                }
+            }
+        } else {
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 4.dp),
+                shape = RoundedCornerShape(16.dp),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.45f))
+            ) {
+                Row(
+                    modifier = Modifier.padding(16.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(48.dp)
+                            .clip(CircleShape)
+                            .background(MaterialTheme.colorScheme.primaryContainer),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            Icons.Default.People,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(24.dp)
+                        )
+                    }
+                    Spacer(Modifier.width(14.dp))
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = "Connected to Community Network",
+                            style = PoppinsTypography().titleMedium.copy(
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.onSurface,
+                                fontSize = 15.sp
+                            )
+                        )
+                        Spacer(Modifier.height(2.dp))
+                        Text(
+                            text = "As peers register, their profiles will appear here for connection and support.",
+                            style = PoppinsTypography().bodySmall.copy(
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                fontSize = 12.sp
+                            )
+                        )
+                    }
+                }
             }
         }
     }
@@ -590,7 +623,7 @@ fun PeerFarmerDetailDialog(
                     ) {
                         Icon(Icons.Default.Chat, contentDescription = null, modifier = Modifier.size(16.dp))
                         Spacer(Modifier.width(6.dp))
-                        Text("Open Farmer Hub")
+                        Text("Open Community Hub")
                     }
                     OutlinedButton(
                         onClick = onDismiss,

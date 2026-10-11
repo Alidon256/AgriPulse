@@ -206,7 +206,7 @@ private fun ConnectContent(
             shape = RoundedCornerShape(12.dp)
         ) {
             Text(
-                text = "Log In as Farmer",
+                text = "Log In",
                 fontSize = 16.sp,
                 style = PoppinsTypography().bodyMedium,
                 fontWeight = FontWeight.Bold,
@@ -228,7 +228,7 @@ private fun ConnectContent(
             shape = RoundedCornerShape(12.dp)
         ) {
             Text(
-                text = "Create Farmer Account",
+                text = "Create Account",
                 fontSize = 16.sp,
                 style = PoppinsTypography().bodyMedium,
                 fontWeight = FontWeight.Bold,

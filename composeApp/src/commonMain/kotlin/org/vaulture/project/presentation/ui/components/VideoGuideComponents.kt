@@ -203,6 +203,14 @@ fun VideoGuidePlayerDialog(
                         .clip(RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp))
                         .background(Color.Black)
                 ) {
+                    if (video.thumbnailUrl.isNotBlank()) {
+                        AsyncImage(
+                            model = video.thumbnailUrl,
+                            contentDescription = null,
+                            modifier = Modifier.fillMaxSize(),
+                            contentScale = ContentScale.Crop
+                        )
+                    }
                     NativeVideoPlayer(
                         url = video.videoUrl,
                         modifier = Modifier.fillMaxSize(),

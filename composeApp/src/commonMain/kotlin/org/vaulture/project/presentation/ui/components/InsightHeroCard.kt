@@ -107,7 +107,7 @@ fun InsightHeroCard(result: CheckInResult) {
                     )
                 }
                 Text(
-                    "Risk Score",
+                    "Crop Threat Risk Index",
                     style = PoppinsTypography().bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -129,7 +129,7 @@ fun InsightHeroCard(result: CheckInResult) {
                         )
                         Spacer(Modifier.width(8.dp))
                         Text(
-                            "Gemini Insight",
+                            "AgriPulse AI Agronomic Insight",
                             style = PoppinsTypography().labelSmall,
                             fontWeight = FontWeight.Bold,
                             color = stateColor

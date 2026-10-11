@@ -7,7 +7,6 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
-import org.vaulture.project.features.home.data.DEFAULT_TRACKS
 import org.vaulture.project.features.home.domain.model.RhythmTrack
 import org.vaulture.project.features.home.domain.repository.RhythmRepository
 
@@ -22,7 +21,7 @@ class RhythmRepositoryImpl(
             .collection("tracks")
             .snapshots
             .map { snapshot ->
-                val remoteTracks = snapshot.documents.mapNotNull { doc ->
+                snapshot.documents.mapNotNull { doc ->
                     try {
                         val track: RhythmTrack = doc.data()
                         track.copy(id = doc.id)
@@ -30,10 +29,9 @@ class RhythmRepositoryImpl(
                         null
                     }
                 }
-                if (remoteTracks.isEmpty()) DEFAULT_TRACKS else remoteTracks
             }
             .catch {
-                emit(DEFAULT_TRACKS)
+                emit(emptyList())
             }
 
         return combine(remoteFlow, _localTracks.asStateFlow()) { remote, local ->

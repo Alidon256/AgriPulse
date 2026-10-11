@@ -67,7 +67,7 @@ fun CropMarketPriceTicker(
                 )
                 Spacer(Modifier.width(8.dp))
                 Text(
-                    "Regional Market Prices 📈",
+                    "Market Prices 📈",
                     style = PoppinsTypography().titleSmall,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onSurface

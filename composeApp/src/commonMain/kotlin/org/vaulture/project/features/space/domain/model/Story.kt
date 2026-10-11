@@ -29,7 +29,9 @@ data class Story @OptIn(ExperimentalSerializationApi::class) constructor(
     val commentCount: Int = 0,
     val comments: List<Comment> = emptyList(),
     val isFeed: Boolean = false,
-    val isLiked: Boolean = false
+    val isLiked: Boolean = false,
+    val isEdited: Boolean = false,
+    val duration: String? = null
 ) {
     enum class ContentType {
         PHOTO, VIDEO, TEXT, AUDIO, GIF

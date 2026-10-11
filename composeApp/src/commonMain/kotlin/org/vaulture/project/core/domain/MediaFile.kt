@@ -6,7 +6,9 @@ data class MediaFile(
     val content: ByteArray,
     val thumbnail: ByteArray? = null,
     val type: Story.ContentType,
-    val aspectRatio: Float
+    val aspectRatio: Float,
+    val duration: String? = null,
+    val localUri: String? = null
 ) {
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
@@ -15,6 +17,8 @@ data class MediaFile(
         other as MediaFile
 
         if (aspectRatio != other.aspectRatio) return false
+        if (duration != other.duration) return false
+        if (localUri != other.localUri) return false
         if (!content.contentEquals(other.content)) return false
         if (!thumbnail.contentEquals(other.thumbnail)) return false
         if (type != other.type) return false
@@ -27,6 +31,8 @@ data class MediaFile(
         result = 31 * result + content.contentHashCode()
         result = 31 * result + (thumbnail?.contentHashCode() ?: 0)
         result = 31 * result + type.hashCode()
+        result = 31 * result + (duration?.hashCode() ?: 0)
+        result = 31 * result + (localUri?.hashCode() ?: 0)
         return result
     }
 }

@@ -96,7 +96,7 @@ fun EditPortfolioScreen(
                 CenterAlignedTopAppBar(
                     title = {
                         Text(
-                            "Farmer Profile & Credentials",
+                            "Profile & Credentials",
                             style = PoppinsTypography().titleLarge
                         )
                     },
@@ -204,7 +204,7 @@ fun EditPortfolioScreen(
                     OutlinedTextField(
                         value = displayName,
                         onValueChange = { displayName = it },
-                        label = { Text("Farmer Display Name *") },
+                        label = { Text("Display Name *") },
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(14.dp),
                         singleLine = true
@@ -421,7 +421,7 @@ fun EditPortfolioScreen(
 
                     // Certifications & Accreditations (Multi-select)
                     Text(
-                        text = "Farmer Certifications & Badges 🏅",
+                        text = "Certifications & Badges 🏅",
                         style = PoppinsTypography().titleSmall,
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.primary,
@@ -491,7 +491,7 @@ fun EditPortfolioScreen(
                         colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
                         enabled = displayName.isNotBlank() && !isUpdating
                     ) {
-                        Text("Save Farmer Credentials 🌾", fontWeight = FontWeight.Bold, style = PoppinsTypography().bodyLarge)
+                        Text("Save Credentials 🌾", fontWeight = FontWeight.Bold, style = PoppinsTypography().bodyLarge)
                     }
 
                     Spacer(Modifier.height(40.dp))

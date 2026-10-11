@@ -88,13 +88,13 @@ fun EmptyStateHero(onStartCheckIn: () -> Unit) {
 
                 Spacer(Modifier.height(16.dp))
                 Text(
-                    "Daily Crop Health Check-In",
+                    "Daily Field Scouting",
                     style = PoppinsTypography().titleMedium,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onSurface
                 )
                 Text(
-                    "Log field observations for AI crop diagnostics",
+                    "Record daily field observations for AI crop health & threat diagnostics",
                     style = PoppinsTypography().bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )

@@ -10,7 +10,6 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import org.vaulture.project.core.domain.User
 import org.vaulture.project.core.util.upload
-import org.vaulture.project.features.space.domain.model.DEFAULT_SPACES
 import org.vaulture.project.features.space.domain.model.Space
 import org.vaulture.project.features.space.domain.model.SpaceMessage
 import org.vaulture.project.features.space.domain.model.Story
@@ -86,11 +85,21 @@ class SpaceRepositoryImpl(
     override suspend fun createStory(
         title: String,
         mediaBytes: ByteArray?,
-        mediaFileName: String?
+        mediaFileName: String?,
+        thumbnailBytes: ByteArray?,
+        contentType: Story.ContentType,
+        isFeed: Boolean,
+        aspectRatio: Float,
+        visibility: Story.Visibility,
+        duration: String?
     ): Result<Unit> = runCatching {
         val user = auth.currentUser ?: throw IllegalStateException("User not authenticated")
         val mediaUrl = if (mediaBytes != null && mediaFileName != null) {
             uploadFile(mediaBytes, "story_media/${user.uid}_${Timestamp.now().seconds}_$mediaFileName")
+        } else null
+
+        val thumbnailUrl = if (thumbnailBytes != null) {
+            uploadFile(thumbnailBytes, "story_thumbnails/${user.uid}_${Timestamp.now().seconds}.jpg")
         } else null
 
         val (authorName, authorPhotoUrl) = fetchAuthorDetails(user.uid)
@@ -101,8 +110,13 @@ class SpaceRepositoryImpl(
             userProfileUrl = authorPhotoUrl,
             textContent = title,
             contentUrl = mediaUrl,
+            thumbnailUrl = thumbnailUrl,
+            contentType = contentType,
+            aspectRatio = aspectRatio,
+            visibility = visibility,
             timestamp = Timestamp.now(),
-            isFeed = false
+            isFeed = isFeed,
+            duration = duration
         )
         firestore.collection("stories").add(story)
     }
@@ -187,6 +201,44 @@ class SpaceRepositoryImpl(
             firestore.collection("spaces").document(spaceId).collection("posts").add(post)
         } else {
             firestore.collection("stories").add(post)
+        }
+    }
+
+    override suspend fun updatePost(
+        postId: String,
+        newText: String,
+        spaceId: String?,
+        mediaBytes: ByteArray?,
+        mediaFileName: String?,
+        thumbnailBytes: ByteArray?,
+        newVisibility: Story.Visibility?,
+        duration: String?
+    ): Result<Unit> = runCatching {
+        val user = auth.currentUser ?: throw IllegalStateException("User not authenticated")
+        val docRef = if (spaceId != null) {
+            firestore.collection("spaces").document(spaceId).collection("posts").document(postId)
+        } else {
+            firestore.collection("stories").document(postId)
+        }
+
+        docRef.update("textContent" to newText, "isEdited" to true)
+
+        if (mediaBytes != null && mediaFileName != null) {
+            val mediaUrl = uploadFile(mediaBytes, "story_media/${user.uid}_${Timestamp.now().seconds}_$mediaFileName")
+            docRef.update("contentUrl" to mediaUrl)
+        }
+
+        if (thumbnailBytes != null) {
+            val thumbUrl = uploadFile(thumbnailBytes, "story_thumbnails/${user.uid}_${Timestamp.now().seconds}.jpg")
+            docRef.update("thumbnailUrl" to thumbUrl)
+        }
+
+        if (duration != null) {
+            docRef.update("duration" to duration)
+        }
+
+        if (newVisibility != null) {
+            docRef.update("visibility" to newVisibility.name)
         }
     }
 
@@ -283,11 +335,7 @@ class SpaceRepositoryImpl(
                 null
             }
         }
-        if (spaces.isEmpty()) {
-            DEFAULT_SPACES
-        } else {
-            spaces
-        }
+        spaces
     }
 
     override fun getSpaceDetailsStream(spaceId: String): Flow<Space?> = combine(
@@ -306,10 +354,10 @@ class SpaceRepositoryImpl(
                     memberPhotoUrls = photoUrls
                 )
             } catch (_: Exception) {
-                DEFAULT_SPACES.find { it.id == spaceId }
+                null
             }
         } else {
-            DEFAULT_SPACES.find { it.id == spaceId }
+            null
         }
     }
 
@@ -358,13 +406,14 @@ class SpaceRepositoryImpl(
                 "coverImageUrl" to coverUrl
             )
         } else {
-            val defaultSpace = DEFAULT_SPACES.find { it.id == spaceId }
-            val newSpace = (defaultSpace ?: Space(id = spaceId, name = name, description = description, coverImageUrl = coverUrl)).copy(
+            val newSpace = Space(
+                id = spaceId,
                 name = name,
                 description = description,
                 coverImageUrl = coverUrl,
-                ownerId = defaultSpace?.ownerId?.ifBlank { user.uid } ?: user.uid,
-                memberIds = (defaultSpace?.memberIds ?: emptyList()) + user.uid
+                ownerId = user.uid,
+                memberIds = listOf(user.uid),
+                createdAt = Timestamp.now()
             )
             docRef.set(newSpace)
         }
@@ -376,12 +425,6 @@ class SpaceRepositoryImpl(
         val doc = docRef.get()
         if (doc.exists) {
             docRef.update("memberIds" to FieldValue.arrayUnion(userId))
-        } else {
-            val defaultSpace = DEFAULT_SPACES.find { it.id == spaceId }
-            if (defaultSpace != null) {
-                val updatedMembers = if (defaultSpace.memberIds.contains(userId)) defaultSpace.memberIds else defaultSpace.memberIds + userId
-                docRef.set(defaultSpace.copy(memberIds = updatedMembers))
-            }
         }
     }
 
@@ -497,10 +540,12 @@ class SpaceRepositoryImpl(
         .collection("users")
         .snapshots
         .map { snapshot ->
+            val currentUid = auth.currentUser?.uid
             snapshot.documents.mapNotNull { doc ->
                 try {
                     val user: User = doc.data()
-                    user.copy(uid = if (user.uid.isBlank()) doc.id else user.uid)
+                    val uid = if (user.uid.isBlank()) doc.id else user.uid
+                    if (uid == currentUid) null else user.copy(uid = uid)
                 } catch (_: Exception) {
                     null
                 }

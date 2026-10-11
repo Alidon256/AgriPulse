@@ -7,7 +7,6 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
-import org.vaulture.project.features.home.domain.model.DEFAULT_VIDEO_GUIDES
 import org.vaulture.project.features.home.domain.model.FarmerVideoGuide
 import org.vaulture.project.features.home.domain.repository.VideoGuideRepository
 
@@ -22,7 +21,7 @@ class VideoGuideRepositoryImpl(
             .collection("video_guides")
             .snapshots
             .map { snapshot ->
-                val remoteList = snapshot.documents.mapNotNull { doc ->
+                snapshot.documents.mapNotNull { doc ->
                     try {
                         val guide: FarmerVideoGuide = doc.data()
                         guide.copy(id = doc.id)
@@ -30,16 +29,21 @@ class VideoGuideRepositoryImpl(
                         null
                     }
                 }
-                if (remoteList.isEmpty()) DEFAULT_VIDEO_GUIDES else remoteList
             }
             .catch {
-                emit(DEFAULT_VIDEO_GUIDES)
+                emit(emptyList())
             }
 
         return combine(remoteFlow, _localGuides.asStateFlow()) { remote, local ->
             // Local newly created guides appear first, followed by remote, avoiding duplicates
             val localIds = local.map { it.id }.toSet()
             local + remote.filterNot { it.id in localIds }
+        }
+    }
+
+    override fun getUserVideoGuidesStream(userId: String): Flow<List<FarmerVideoGuide>> {
+        return getVideoGuidesStream().map { guides ->
+            guides.filter { it.userId == userId }
         }
     }
 

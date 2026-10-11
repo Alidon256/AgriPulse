@@ -13,10 +13,27 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import kotlinx.coroutines.delay
 import org.vaulture.project.core.theme.PoppinsTypography
+import java.awt.Desktop
+import java.net.URI
+
+private fun extractYouTubeId(url: String): String? {
+    if (url.isBlank()) return null
+    val trimmed = url.trim()
+    val pattern = Regex(
+        "(?:youtube\\.com/(?:[^/]+/.+/|(?:v|e(?:mbed)?)/|.*[?&]v=)|youtu\\.be/)([^\"&?/\\s]{11})",
+        RegexOption.IGNORE_CASE
+    )
+    val match = pattern.find(trimmed)
+    if (match != null) return match.groupValues[1]
+    if (trimmed.length == 11 && trimmed.matches(Regex("^[a-zA-Z0-9_-]{11}$"))) {
+        return trimmed
+    }
+    return null
+}
 
 @Composable
 actual fun NativeVideoPlayer(
@@ -24,14 +41,17 @@ actual fun NativeVideoPlayer(
     modifier: Modifier,
     autoPlay: Boolean
 ) {
-    var isPlaying by remember { mutableStateOf(autoPlay) }
-    var progress by remember { mutableStateOf(0.12f) }
-    var isMuted by remember { mutableStateOf(false) }
+    val cleanUrl = url.trim()
+    val youtubeId = remember(cleanUrl) { extractYouTubeId(cleanUrl) }
+    val playableUrl = if (youtubeId != null) "https://www.youtube.com/watch?v=$youtubeId" else cleanUrl
 
-    LaunchedEffect(isPlaying) {
-        while (isPlaying) {
-            delay(500)
-            progress = (progress + 0.015f).let { if (it > 1f) 0f else it }
+    val openVideo: () -> Unit = {
+        try {
+            if (playableUrl.isNotBlank() && Desktop.isDesktopSupported() && Desktop.getDesktop().isSupported(Desktop.Action.BROWSE)) {
+                Desktop.getDesktop().browse(URI(playableUrl))
+            }
+        } catch (e: Exception) {
+            println("Failed to launch video on Desktop: ${e.message}")
         }
     }
 
@@ -42,14 +62,15 @@ actual fun NativeVideoPlayer(
         contentAlignment = Alignment.Center
     ) {
         Column(
-            modifier = Modifier.fillMaxSize(),
-            verticalArrangement = Arrangement.SpaceBetween
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(16.dp),
+            verticalArrangement = Arrangement.SpaceBetween,
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Top Bar
+            // Header
             Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(12.dp),
+                modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
@@ -65,11 +86,11 @@ actual fun NativeVideoPlayer(
                             modifier = Modifier
                                 .size(8.dp)
                                 .clip(CircleShape)
-                                .background(if (isPlaying) Color(0xFF4CAF50) else Color(0xFFFF9800))
+                                .background(Color(0xFF4CAF50))
                         )
                         Spacer(Modifier.width(6.dp))
                         Text(
-                            text = if (isPlaying) "Streaming In-App" else "Paused",
+                            text = if (youtubeId != null) "YouTube Video" else "Video Stream",
                             style = PoppinsTypography().labelSmall,
                             color = Color.White,
                             fontSize = 11.sp
@@ -78,90 +99,64 @@ actual fun NativeVideoPlayer(
                 }
 
                 IconButton(
-                    onClick = { isMuted = !isMuted },
+                    onClick = openVideo,
                     modifier = Modifier.size(32.dp)
                 ) {
                     Icon(
-                        if (isMuted) Icons.Default.VolumeOff else Icons.Default.VolumeUp,
-                        contentDescription = "Mute Toggle",
+                        Icons.Default.OpenInNew,
+                        contentDescription = "Open Stream",
                         tint = Color.White,
                         modifier = Modifier.size(20.dp)
                     )
                 }
             }
 
-            // Center Play/Pause button
-            Box(
-                modifier = Modifier.fillMaxWidth(),
-                contentAlignment = Alignment.Center
+            // Center Play Button & Instructions
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
             ) {
                 Surface(
                     shape = CircleShape,
-                    color = MaterialTheme.colorScheme.primary.copy(alpha = 0.9f),
+                    color = MaterialTheme.colorScheme.primary,
                     modifier = Modifier
-                        .size(54.dp)
-                        .clickable { isPlaying = !isPlaying }
+                        .size(64.dp)
+                        .clickable { openVideo() }
                 ) {
                     Icon(
-                        imageVector = if (isPlaying) Icons.Default.Pause else Icons.Default.PlayArrow,
-                        contentDescription = "Play/Pause",
+                        imageVector = Icons.Default.PlayArrow,
+                        contentDescription = "Play Video",
                         tint = MaterialTheme.colorScheme.onPrimary,
                         modifier = Modifier
                             .fillMaxSize()
-                            .padding(12.dp)
+                            .padding(14.dp)
                     )
                 }
+                Spacer(Modifier.height(12.dp))
+                Text(
+                    text = "Play Video",
+                    style = PoppinsTypography().titleSmall,
+                    color = Color.White,
+                    fontWeight = FontWeight.Bold
+                )
+                Text(
+                    text = "Click to play stream in system media player",
+                    style = PoppinsTypography().bodySmall,
+                    color = Color.White.copy(alpha = 0.7f),
+                    fontSize = 11.sp
+                )
             }
 
-            // Bottom controls
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .background(Color.Black.copy(alpha = 0.75f))
-                    .padding(horizontal = 14.dp, vertical = 8.dp)
+            // Bottom action button
+            Button(
+                onClick = openVideo,
+                shape = RoundedCornerShape(12.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
+                modifier = Modifier.fillMaxWidth().height(42.dp)
             ) {
-                Slider(
-                    value = progress,
-                    onValueChange = { progress = it },
-                    colors = SliderDefaults.colors(
-                        thumbColor = MaterialTheme.colorScheme.primary,
-                        activeTrackColor = MaterialTheme.colorScheme.primary
-                    ),
-                    modifier = Modifier.fillMaxWidth().height(20.dp)
-                )
-
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    val currentSec = (progress * 320).toInt()
-                    val totalSec = 320
-                    val currentMinStr = "${(currentSec / 60).toString().padStart(2, '0')}:${(currentSec % 60).toString().padStart(2, '0')}"
-                    val totalMinStr = "${(totalSec / 60).toString().padStart(2, '0')}:${(totalSec % 60).toString().padStart(2, '0')}"
-
-                    Text(
-                        text = "$currentMinStr / $totalMinStr",
-                        style = PoppinsTypography().labelSmall,
-                        color = Color.White,
-                        fontSize = 11.sp
-                    )
-
-                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        IconButton(
-                            onClick = { progress = (progress - 0.05f).coerceAtLeast(0f) },
-                            modifier = Modifier.size(28.dp)
-                        ) {
-                            Icon(Icons.Default.Replay, null, tint = Color.White, modifier = Modifier.size(16.dp))
-                        }
-                        IconButton(
-                            onClick = { progress = (progress + 0.05f).coerceAtMost(1f) },
-                            modifier = Modifier.size(28.dp)
-                        ) {
-                            Icon(Icons.Default.FastForward, null, tint = Color.White, modifier = Modifier.size(16.dp))
-                        }
-                    }
-                }
+                Icon(Icons.Default.PlayCircle, null, modifier = Modifier.size(18.dp))
+                Spacer(Modifier.width(8.dp))
+                Text("Watch Stream", style = PoppinsTypography().labelMedium)
             }
         }
     }

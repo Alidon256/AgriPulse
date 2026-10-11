@@ -77,7 +77,7 @@ fun StreakBanner(
             ) {
                 Column(Modifier.weight(1f)) {
                     Text(
-                        "Crop Resilience Streak",
+                        "Daily Streak",
                         style = PoppinsTypography().labelLarge.copy(
                             fontSize = titleFontSize,
                             fontWeight = FontWeight.Bold,

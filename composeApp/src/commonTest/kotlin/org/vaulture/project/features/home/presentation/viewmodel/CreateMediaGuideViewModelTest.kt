@@ -19,6 +19,7 @@ private class FakeVideoGuideRepository : VideoGuideRepository {
     private val flow = MutableStateFlow<List<FarmerVideoGuide>>(emptyList())
 
     override fun getVideoGuidesStream(): Flow<List<FarmerVideoGuide>> = flow.asStateFlow()
+    override fun getUserVideoGuidesStream(userId: String): Flow<List<FarmerVideoGuide>> = flow.asStateFlow()
 
     override suspend fun addVideoGuide(guide: FarmerVideoGuide) {
         guides.add(guide)
@@ -120,6 +121,7 @@ class CreateMediaGuideViewModelTest {
         viewModel.updateInstructor("Dr. Auma (NARO)")
         viewModel.updateCategory("Pest & Disease Control")
         viewModel.updateLanguage("Kiswahili")
+        viewModel.updateMediaUrl("https://example.com/video.mp4")
 
         var successCalled = false
         viewModel.publishGuideInternal { successCalled = true }
@@ -145,6 +147,7 @@ class CreateMediaGuideViewModelTest {
         viewModel.updateInstructor("Radio Simba Agri Desk")
         viewModel.updateCategory("Crop Yield & Harvesting")
         viewModel.updateLanguage("Luganda")
+        viewModel.updateMediaUrl("https://example.com/audio.mp3")
 
         var successCalled = false
         viewModel.publishGuideInternal { successCalled = true }

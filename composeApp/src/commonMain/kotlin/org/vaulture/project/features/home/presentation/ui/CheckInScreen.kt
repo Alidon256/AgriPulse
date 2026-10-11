@@ -129,7 +129,7 @@ fun CheckInScreen(
                                 CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
                                 Spacer(Modifier.height(16.dp))
                                 Text(
-                                    "Curating field questions with AI...",
+                                    "Curating field diagnostic questions...",
                                     fontWeight = FontWeight.Medium,
                                     style = PoppinsTypography().headlineSmall,
                                     color = MaterialTheme.colorScheme.onSurface
@@ -149,7 +149,7 @@ fun CheckInScreen(
                                     color = MaterialTheme.colorScheme.onSurface
                                 )
                                 Text(
-                                    "Detecting crop symptoms & calculating risk",
+                                    "Detecting crop symptoms & calculating risk index...",
                                     style = PoppinsTypography().bodyMedium,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
@@ -172,7 +172,7 @@ fun CheckInScreen(
                                 )
                                 Spacer(Modifier.height(16.dp))
                                 Text(
-                                    "Crop Health Checked",
+                                    "Field Pulse Scouted!",
                                     style = PoppinsTypography().headlineMedium,
                                     fontWeight = FontWeight.Bold,
                                     color = MaterialTheme.colorScheme.onSurface
@@ -227,7 +227,7 @@ fun CheckInScreen(
                                             horizontalArrangement = Arrangement.SpaceBetween
                                         ) {
                                             Text(
-                                                "Optimal",
+                                                "Optimal Growth",
                                                 style = PoppinsTypography().bodySmall,
                                                 color = ColorStable
                                             )
@@ -242,17 +242,19 @@ fun CheckInScreen(
                             }
                             else -> {
                                 Text(
-                                    "In your own words...",
+                                    "Field Observations & Scouting Notes",
                                     style = PoppinsTypography().headlineSmall,
                                     fontWeight = FontWeight.Bold,
-                                    color = MaterialTheme.colorScheme.onSurface
+                                    color = MaterialTheme.colorScheme.onSurface,
+                                    textAlign = TextAlign.Center
                                 )
 
                                 Spacer(Modifier.height(8.dp))
 
                                 Text(
-                                    "Describe your field observations...",
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    "Describe any specific crop symptoms, pest sightings, or field conditions observed today...",
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    textAlign = TextAlign.Center
                                 )
 
                                 Spacer(Modifier.height(24.dp))
@@ -263,9 +265,9 @@ fun CheckInScreen(
                                     modifier = Modifier.fillMaxWidth().height(160.dp),
                                     placeholder = {
                                         Text(
-                                            "Notice leaf yellowing, stem borers, or soil dryness...",
+                                            "e.g., Noticed minor fall armyworm feeding on lower leaves, topsoil surface is dry near roots...",
                                             style = PoppinsTypography().bodyMedium
-                                            )
+                                        )
                                     },
                                     shape = RoundedCornerShape(16.dp),
                                     colors = TextFieldDefaults.colors(
@@ -288,7 +290,7 @@ fun CheckInScreen(
                                     colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
                                 ) {
                                     Text(
-                                        "Analyze Pulse",
+                                        "Analyze Field Pulse",
                                         style = PoppinsTypography().labelLarge
                                     )
                                 }

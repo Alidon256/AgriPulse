@@ -15,8 +15,24 @@ class SpaceUseCases(
     suspend fun createStory(
         title: String,
         mediaBytes: ByteArray?,
-        mediaFileName: String?
-    ): Result<Unit> = repository.createStory(title, mediaBytes, mediaFileName)
+        mediaFileName: String?,
+        thumbnailBytes: ByteArray? = null,
+        contentType: Story.ContentType = Story.ContentType.PHOTO,
+        isFeed: Boolean = false,
+        aspectRatio: Float = 1.0f,
+        visibility: Story.Visibility = Story.Visibility.PUBLIC,
+        duration: String? = null
+    ): Result<Unit> = repository.createStory(
+        title = title,
+        mediaBytes = mediaBytes,
+        mediaFileName = mediaFileName,
+        thumbnailBytes = thumbnailBytes,
+        contentType = contentType,
+        isFeed = isFeed,
+        aspectRatio = aspectRatio,
+        visibility = visibility,
+        duration = duration
+    )
 
     fun getPostsStream(filter: String = "ALL"): Flow<List<Story>> = repository.getPostsStream(filter)
 
@@ -29,6 +45,17 @@ class SpaceUseCases(
         imageBytes: ByteArray? = null,
         imageFileName: String? = null
     ): Result<Unit> = repository.createPost(text, spaceId, spaceName, imageBytes, imageFileName)
+
+    suspend fun updatePost(
+        postId: String,
+        newText: String,
+        spaceId: String? = null,
+        mediaBytes: ByteArray? = null,
+        mediaFileName: String? = null,
+        thumbnailBytes: ByteArray? = null,
+        newVisibility: Story.Visibility? = null,
+        duration: String? = null
+    ): Result<Unit> = repository.updatePost(postId, newText, spaceId, mediaBytes, mediaFileName, thumbnailBytes, newVisibility, duration)
 
     suspend fun deletePost(postId: String): Result<Unit> = repository.deletePost(postId)
 

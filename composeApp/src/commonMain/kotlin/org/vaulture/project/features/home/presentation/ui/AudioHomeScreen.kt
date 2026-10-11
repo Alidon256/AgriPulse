@@ -3,6 +3,8 @@ package org.vaulture.project.features.home.presentation.ui
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.grid.GridCells
@@ -12,13 +14,16 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AddCircle
 import androidx.compose.material.icons.filled.Cancel
+import androidx.compose.material.icons.filled.Headphones
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -99,7 +104,7 @@ fun RhythmHomeScreen(
                         isSearchExpanded = false
                     },
                     recentSearches = recentSearches.toList(),
-                    placeholderText = "Search extension audio guides (e.g. Maize, Soil, Pests)...",
+                    placeholderText = "Search audio guides...",
                     modifier = Modifier.weight(1f).fillMaxWidth(searchBarWidthFraction)
                 )
 
@@ -136,6 +141,10 @@ fun RhythmHomeContent(
     screenWidth: Dp
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    val videoGuideRepository: org.vaulture.project.features.home.domain.repository.VideoGuideRepository = org.koin.compose.koinInject()
+    val videoGuides by remember(videoGuideRepository) {
+        videoGuideRepository.getVideoGuidesStream()
+    }.collectAsState(initial = emptyList())
     var selectedVideo by remember { mutableStateOf<org.vaulture.project.features.home.domain.model.FarmerVideoGuide?>(null) }
 
     if (selectedVideo != null) {
@@ -190,6 +199,14 @@ fun RhythmHomeContent(
 
     val columnCount = (screenWidth.value / 180).roundToInt().coerceAtLeast(2)
 
+    val hasCategorizedTracks = remember(uiState.tracks) {
+        uiState.tracks.any { track ->
+            categories.any { category ->
+                track.tags.any { tag -> category.tags.contains(tag.lowercase()) }
+            }
+        }
+    }
+
     if (selectedCategoryName == null && searchQuery.isBlank()) {
 
         LazyColumn(
@@ -206,38 +223,78 @@ fun RhythmHomeContent(
                             .padding(horizontal = padding, vertical = 6.dp)
                     ) {
                         Text(
-                            text = "Field Demonstration Videos 🎥",
+                            text = "Video Guides",
                             style = PoppinsTypography().headlineMedium.copy(
                                 fontSize = 20.sp,
                                 fontWeight = FontWeight.Bold
                             )
                         )
                         Text(
-                            text = "Free practical video guides for African smallholder agriculture",
+                            text = "Practical video guides & tutorials",
                             style = PoppinsTypography().bodySmall.copy(
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         )
                     }
-                    LazyRow(
-                        contentPadding = PaddingValues(horizontal = padding),
-                        horizontalArrangement = Arrangement.spacedBy(14.dp),
-                        modifier = Modifier.padding(top = 8.dp)
-                    ) {
-                        items(
-                            org.vaulture.project.features.home.domain.model.DEFAULT_VIDEO_GUIDES,
-                            key = { it.id }
-                        ) { video ->
-                            org.vaulture.project.presentation.ui.components.VideoGuideCard(
-                                video = video,
-                                onClick = { selectedVideo = video }
-                            )
+                    if (videoGuides.isEmpty()) {
+                        Card(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = padding, vertical = 6.dp),
+                            colors = CardDefaults.cardColors(
+                                containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f)
+                            ),
+                            shape = RoundedCornerShape(12.dp)
+                        ) {
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(16.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.SpaceBetween
+                            ) {
+                                Column(modifier = Modifier.weight(1f)) {
+                                    Text(
+                                        text = "No video guides yet",
+                                        style = PoppinsTypography().titleSmall.copy(fontWeight = FontWeight.SemiBold)
+                                    )
+                                    Text(
+                                        text = "Share a video guide from your profile!",
+                                        style = PoppinsTypography().bodySmall.copy(
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                                        )
+                                    )
+                                }
+                                Spacer(Modifier.width(12.dp))
+                                Button(
+                                    onClick = { navController.navigate(Routes.CREATE_MEDIA_GUIDE) },
+                                    shape = RoundedCornerShape(10.dp)
+                                ) {
+                                    Text("Add Guide")
+                                }
+                            }
+                        }
+                    } else {
+                        LazyRow(
+                            contentPadding = PaddingValues(horizontal = padding),
+                            horizontalArrangement = Arrangement.spacedBy(14.dp),
+                            modifier = Modifier.padding(top = 8.dp)
+                        ) {
+                            items(
+                                videoGuides,
+                                key = { it.id }
+                            ) { video ->
+                                org.vaulture.project.presentation.ui.components.VideoGuideCard(
+                                    video = video,
+                                    onClick = { selectedVideo = video }
+                                )
+                            }
                         }
                     }
                 }
             }
 
-            // Second Section: Extension Audio Guides with Filters
+            // Second Section: Audio Guides with Filters
             item {
                 Column(modifier = Modifier.fillMaxWidth().padding(top = 8.dp)) {
                     Column(
@@ -246,14 +303,14 @@ fun RhythmHomeContent(
                             .padding(horizontal = padding, vertical = 6.dp)
                     ) {
                         Text(
-                            text = "Farmer Extension Audio Guides 🎙️",
+                            text = "Audio Guides",
                             style = PoppinsTypography().headlineMedium.copy(
                                 fontSize = 20.sp,
                                 fontWeight = FontWeight.Bold
                             )
                         )
                         Text(
-                            text = "Listen to practical voice advice on pests, soils, and harvesting",
+                            text = "Listen to practical voice advice & audio guides",
                             style = PoppinsTypography().bodySmall.copy(
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
@@ -272,33 +329,92 @@ fun RhythmHomeContent(
                 }
             }
 
-            items(categories) { category ->
-                val categoryTracks = uiState.tracks.filter { track ->
-                    track.tags.any { tag -> category.tags.contains(tag.lowercase()) }
-                }.take(8)
-
-                if (categoryTracks.isNotEmpty()) {
-                    Column {
-                        Text(
-                            text = category.name,
-                            style = PoppinsTypography().headlineMedium.copy(
-                                fontSize = 20.sp,
-                                fontWeight = FontWeight.Bold
-                            ),
-                            modifier = Modifier.padding(horizontal = padding, vertical = 8.dp)
-                        )
-                        LazyRow(
-                            contentPadding = PaddingValues(horizontal = padding),
-                            horizontalArrangement = Arrangement.spacedBy(12.dp)
+            if (!hasCategorizedTracks) {
+                item {
+                    Card(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = padding, vertical = 12.dp),
+                        colors = CardDefaults.cardColors(
+                            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f)
+                        ),
+                        shape = RoundedCornerShape(16.dp)
+                    ) {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(24.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.Center
                         ) {
-                            items(categoryTracks) { track ->
-                                RhythmItem(
-                                    track = track,
-                                    onClick = {
-                                        viewModel.playTrack(track)
-                                        navController.navigate(Routes.RHYTHM_PLAYER(track.id))
-                                    }
+                            Box(
+                                modifier = Modifier
+                                    .size(56.dp)
+                                    .clip(CircleShape)
+                                    .background(MaterialTheme.colorScheme.primaryContainer),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Headphones,
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.primary,
+                                    modifier = Modifier.size(28.dp)
                                 )
+                            }
+                            Spacer(Modifier.height(12.dp))
+                            Text(
+                                text = "No Audio Guides Yet",
+                                style = PoppinsTypography().titleMedium.copy(fontWeight = FontWeight.Bold),
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                            Spacer(Modifier.height(4.dp))
+                            Text(
+                                text = "Upload an audio guide or explore video guides above!",
+                                style = PoppinsTypography().bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                textAlign = TextAlign.Center
+                            )
+                            Spacer(Modifier.height(16.dp))
+                            Button(
+                                onClick = { navController.navigate(Routes.CREATE_MEDIA_GUIDE) },
+                                shape = RoundedCornerShape(10.dp)
+                            ) {
+                                Icon(Icons.Default.AddCircle, contentDescription = null, modifier = Modifier.size(16.dp))
+                                Spacer(Modifier.width(6.dp))
+                                Text("Upload Guide")
+                            }
+                        }
+                    }
+                }
+            } else {
+                items(categories) { category ->
+                    val categoryTracks = uiState.tracks.filter { track ->
+                        track.tags.any { tag -> category.tags.contains(tag.lowercase()) }
+                    }.take(8)
+
+                    if (categoryTracks.isNotEmpty()) {
+                        Column {
+                            Text(
+                                text = category.name,
+                                style = PoppinsTypography().headlineMedium.copy(
+                                    fontSize = 20.sp,
+                                    fontWeight = FontWeight.Bold
+                                ),
+                                modifier = Modifier.padding(horizontal = padding, vertical = 8.dp)
+                            )
+                            LazyRow(
+                                contentPadding = PaddingValues(horizontal = padding),
+                                horizontalArrangement = Arrangement.spacedBy(12.dp)
+                            ) {
+                                items(categoryTracks) { track ->
+                                    RhythmItem(
+                                        track = track,
+                                        onClick = {
+                                            viewModel.playTrack(track)
+                                            navController.navigate(Routes.RHYTHM_PLAYER(track.id))
+                                        }
+                                    )
+                                }
                             }
                         }
                     }
@@ -320,14 +436,54 @@ fun RhythmHomeContent(
             AnimatedContent(targetState = finalTracks, label = "GridTransition") { tracksToShow ->
                 if (tracksToShow.isEmpty()) {
                     Box(
-                        modifier = Modifier.fillMaxSize(),
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(horizontal = padding, vertical = 32.dp),
                         contentAlignment = Alignment.Center
                     ) {
-                        Text(
-                            text = if (searchQuery.isNotBlank()) "No matches for '$searchQuery'" else "Empty category",
-                            style = PoppinsTypography().bodyLarge,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
+                        Card(
+                            colors = CardDefaults.cardColors(
+                                containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f)
+                            ),
+                            shape = RoundedCornerShape(16.dp),
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Column(
+                                modifier = Modifier.padding(24.dp).fillMaxWidth(),
+                                horizontalAlignment = Alignment.CenterHorizontally
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Headphones,
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    modifier = Modifier.size(40.dp)
+                                )
+                                Spacer(Modifier.height(12.dp))
+                                Text(
+                                    text = if (searchQuery.isNotBlank()) "No guides matching '$searchQuery'" else "No guides in this category",
+                                    style = PoppinsTypography().titleSmall.copy(fontWeight = FontWeight.Bold),
+                                    color = MaterialTheme.colorScheme.onSurface,
+                                    textAlign = TextAlign.Center
+                                )
+                                Spacer(Modifier.height(4.dp))
+                                Text(
+                                    text = "Try searching with different keywords or clear active filters.",
+                                    style = PoppinsTypography().bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    textAlign = TextAlign.Center
+                                )
+                                Spacer(Modifier.height(16.dp))
+                                OutlinedButton(
+                                    onClick = {
+                                        viewModel.updateSearchQuery("", SearchContext.RHYTHM)
+                                        selectedCategoryName = null
+                                    },
+                                    shape = RoundedCornerShape(10.dp)
+                                ) {
+                                    Text("Clear Filters")
+                                }
+                            }
+                        }
                     }
                 } else {
                     LazyVerticalGrid(

@@ -25,3 +25,5 @@ node_modules/
 *.jks
 *.keystore
 secrets.properties
+.vercel
+.env*
