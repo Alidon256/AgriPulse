@@ -140,6 +140,10 @@ compose.desktop {
     }
 }
 
+compose.resources {
+    packageOfResClass = "mindsetpulse.composeapp.generated.resources"
+}
+
 
 // Add this to fix the 'Missing mainClass property' error for hotRunDesktop
 project.extra.set("mainClass", "org.vaulture.project.MainKt")

@@ -1,4 +1,4 @@
-rootProject.name = "MindsetPulse"
+rootProject.name = "AgriPulse"
 enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
 
 pluginManagement {
