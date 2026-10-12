@@ -1,0 +1,5 @@
+*.map
+*.js.map
+.gradle
+.idea
+.kotlin
