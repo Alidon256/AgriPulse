@@ -3,6 +3,11 @@
 
 ---
 
+[![Download Android APK](https://img.shields.io/badge/Download-Android_APK-3DDC84?style=for-the-badge&logo=android&logoColor=white)](releases/AgriPulse-Android.apk)
+[![Download Desktop App](https://img.shields.io/badge/Download-Desktop_Windows_ZIP-0078D6?style=for-the-badge&logo=windows&logoColor=white)](releases/AgriPulse-Desktop-Windows.zip)
+[![Live Web App](https://img.shields.io/badge/Live_Web_App-agripulse--web.vercel.app-000000?style=for-the-badge&logo=vercel&logoColor=white)](https://agripulse-web.vercel.app/)
+[![Video Demo](https://img.shields.io/badge/Video_Demo-Watch_Recording-E50914?style=for-the-badge&logo=googlechrome&logoColor=white)](https://firebasestorage.googleapis.com/v0/b/mindsetpulse-one.firebasestorage.app/o/gitpulseImages%2Fkmp%20contest%20video%2FKmp%20contest....mp4?alt=media&token=6b8cd1d2-b4cc-4e4f-b80b-31cce1b27276)
+
 [![Kotlin](https://img.shields.io/badge/Kotlin-2.4.10-7F52FF.svg?style=flat&logo=kotlin&logoColor=white)](https://kotlinlang.org/)
 [![Compose Multiplatform](https://img.shields.io/badge/Compose_Multiplatform-1.12.0-4285F4.svg?style=flat&logo=jetpackcompose&logoColor=white)](https://www.jetbrains.com/lp/compose-multiplatform/)
 [![Target Platforms](https://img.shields.io/badge/Platforms-Android%20%7C%20Desktop%20%7C%20Web-3DDC84.svg?style=flat&logo=android&logoColor=white)](https://www.jetbrains.com/help/kotlin-multiplatform-dev/supported-platforms.html)
@@ -28,7 +33,17 @@ Smallholder farmers across Sub-Saharan Africa and developing agricultural econom
 
 ---
 
-## 2. Application Screenshots & UI Showcase
+## 2. Pre-built Downloads, Application Showcase & Links
+
+> 📱 **Android Application (APK)**: [Download AgriPulse-Android.apk](releases/AgriPulse-Android.apk)  
+> *(Direct APK build artifact: `composeApp/build/outputs/apk/debug/composeApp-debug.apk`)*
+>
+> 💻 **Desktop Executable (Windows)**: [Download AgriPulse-Desktop-Windows.zip](releases/AgriPulse-Desktop-Windows.zip)  
+> *(Standalone executable: `composeApp/build/compose/binaries/main/app/AgriPulse/AgriPulse.exe`)*
+>
+> 🌐 **Live Web App Target**: [https://agripulse-web.vercel.app/](https://agripulse-web.vercel.app/)
+>
+> 🎥 **Contest Video Recording**: [Watch Demonstration Video MP4](https://firebasestorage.googleapis.com/v0/b/mindsetpulse-one.firebasestorage.app/o/gitpulseImages%2Fkmp%20contest%20video%2FKmp%20contest....mp4?alt=media&token=6b8cd1d2-b4cc-4e4f-b80b-31cce1b27276)
 
 Below are application screenshots showcasing AgriPulse across platforms (Mobile and Desktop) in both Light and Dark themes:
 
@@ -49,6 +64,11 @@ Below are application screenshots showcasing AgriPulse across platforms (Mobile 
 | Profile Screen (Dark Mode - Desktop) | Profile Edit (Desktop) |
 | :---: | :---: |
 | ![Profile Screen Dark Mode Desktop](https://firebasestorage.googleapis.com/v0/b/mindsetpulse-one.firebasestorage.app/o/gitpulseImages%2Fprofiledark%20desktop.png?alt=media&token=d60e5dcc-f4b6-453c-b8bb-78e760c257d4) | ![Profile Edit Desktop](https://firebasestorage.googleapis.com/v0/b/mindsetpulse-one.firebasestorage.app/o/gitpulseImages%2Fprofile%20edit%20desktop.png?alt=media&token=23047a9a-e540-4340-a600-210c31b1eb46) |
+
+### Web Target Experience (Live WASM/JS Deployment)
+| Web Target (Light Mode) | Web Target (Dark Mode) |
+| :---: | :---: |
+| ![Web Target Light Mode](https://firebasestorage.googleapis.com/v0/b/mindsetpulse-one.firebasestorage.app/o/gitpulseImages%2Fweb%20light.png?alt=media&token=1e1ffca2-e211-4c71-911a-fbbd10640556) | ![Web Target Dark Mode](https://firebasestorage.googleapis.com/v0/b/mindsetpulse-one.firebasestorage.app/o/gitpulseImages%2Fweb%20dark.png?alt=media&token=7466d949-3186-42a1-b339-afbd65f4b953) |
 
 ---
 
@@ -354,36 +374,48 @@ AgriPulseConfig.geminiApiKey = "YOUR_GEMINI_API_KEY_HERE"
 
 ---
 
-## 9. Build and Execution Instructions
+## 9. Build, Execution and Pre-built Downloads
 
-### Prerequisites
+Users can immediately run AgriPulse without compiling source code by downloading pre-built application binaries:
+
+| Target Platform | Download Link / Executable Path | Installation Instructions |
+| :--- | :--- | :--- |
+| **Android APK** | 📱 [AgriPulse-Android.apk](releases/AgriPulse-Android.apk) | Download and install APK directly on Android device (API 26+) |
+| **Desktop (Windows)** | 💻 [AgriPulse-Desktop-Windows.zip](releases/AgriPulse-Desktop-Windows.zip) | Extract ZIP and run `AgriPulse.exe` (`composeApp/build/compose/binaries/main/app/AgriPulse/AgriPulse.exe`) |
+| **Web Target** | 🌐 [agripulse-web.vercel.app](https://agripulse-web.vercel.app/) | Access live web application in any browser |
+
+### Building from Source
+
+#### Prerequisites
 - **JDK 17** (Azul Zulu 17 or Eclipse Temurin 17 recommended).
 - **Android Studio Ladybug+** or **IntelliJ IDEA 2024.2+**.
 - **Android SDK Platform 35** with Build Tools installed.
 
-### Android Application
+#### Android Application
 Connect a physical device (API 26+) or launch an Android emulator:
 ```bash
 ./gradlew :composeApp:installDebug
 ```
 
-### Desktop Application (JVM)
+#### Desktop Application (JVM)
 Runs on macOS, Linux, and Windows with adaptive navigation rails:
 ```bash
 # Launch development desktop application
 ./gradlew :composeApp:run
 
-# Package standalone native desktop installer (DMG / MSI / DEB)
-./gradlew :composeApp:packageDistributionForCurrentOS
+# Build desktop executable/distribution binaries
+./gradlew :composeApp:desktopJar
 ```
-*Distribution outputs are written to `composeApp/build/compose/binaries/main/`.*
+*Desktop distribution outputs are written to `composeApp/build/compose/binaries/main/app/AgriPulse/`.*
 
-### Web Application (Browser / JS)
-```bash
-# Launch development server
-./gradlew :composeApp:jsBrowserDevelopmentRun
-```
-Open `http://localhost:8080` in your web browser.
+#### Web Application (Browser / JS)
+- **Live Web Production Deployment**: [https://agripulse-web.vercel.app/](https://agripulse-web.vercel.app/)
+- **Local Development**:
+  ```bash
+  # Launch development server
+  ./gradlew :composeApp:jsBrowserDevelopmentRun
+  ```
+  Open `http://localhost:8080` in your web browser.
 
 ---
 

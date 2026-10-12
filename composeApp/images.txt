@@ -1,0 +1,7 @@
+https://firebasestorage.googleapis.com/v0/b/mindsetpulse-one.firebasestorage.app/o/gitpulseImages%2Fprofile%20edit%20desktop.png?alt=media&token=23047a9a-e540-4340-a600-210c31b1eb46
+https://firebasestorage.googleapis.com/v0/b/mindsetpulse-one.firebasestorage.app/o/gitpulseImages%2Fprofiledark%20desktop.png?alt=media&token=d60e5dcc-f4b6-453c-b8bb-78e760c257d4
+https://firebasestorage.googleapis.com/v0/b/mindsetpulse-one.firebasestorage.app/o/gitpulseImages%2Fmobile%20light%20settings.png?alt=media&token=b7dc92f1-7760-4f76-9f2a-0e9b545b2437
+https://firebasestorage.googleapis.com/v0/b/mindsetpulse-one.firebasestorage.app/o/gitpulseImages%2Fhome%20light.png?alt=media&token=4cb31f5c-e147-48a1-91fc-55e7e75f5bf4
+https://firebasestorage.googleapis.com/v0/b/mindsetpulse-one.firebasestorage.app/o/gitpulseImages%2Fhome%20dark%20mobile.png?alt=media&token=821b38b5-2068-4bcd-9fba-d9170ddb0b98
+https://firebasestorage.googleapis.com/v0/b/mindsetpulse-one.firebasestorage.app/o/gitpulseImages%2Fonboarding.png?alt=media&token=4840667a-a7b5-4a5a-b54f-5a60601315d4
+https://firebasestorage.googleapis.com/v0/b/mindsetpulse-one.firebasestorage.app/o/gitpulseImages%2Fhome%20light%20both.png?alt=media&token=0231d96e-59db-4a3b-8112-81ff7971b57c
