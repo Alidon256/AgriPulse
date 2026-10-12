@@ -6,7 +6,7 @@
 [![Download Android APK](https://img.shields.io/badge/Download-Android_APK-3DDC84?style=for-the-badge&logo=android&logoColor=white)](releases/AgriPulse-Android.apk)
 [![Download Desktop App](https://img.shields.io/badge/Download-Desktop_Windows_ZIP-0078D6?style=for-the-badge&logo=windows&logoColor=white)](releases/AgriPulse-Desktop-Windows.zip)
 [![Live Web App](https://img.shields.io/badge/Live_Web_App-agripulse--web.vercel.app-000000?style=for-the-badge&logo=vercel&logoColor=white)](https://agripulse-web.vercel.app/)
-[![Video Demo](https://img.shields.io/badge/Video_Demo-Watch_Recording-E50914?style=for-the-badge&logo=googlechrome&logoColor=white)](https://firebasestorage.googleapis.com/v0/b/mindsetpulse-one.firebasestorage.app/o/gitpulseImages%2Fkmp%20contest%20video%2FKmp%20contest....mp4?alt=media&token=6b8cd1d2-b4cc-4e4f-b80b-31cce1b27276)
+[![Video Demo](https://img.shields.io/badge/Video_Demo-Watch_Recording-E50914?style=for-the-badge&logo=googlechrome&logoColor=white)](https://firebasestorage.googleapis.com/v0/b/mindsetpulse-one.firebasestorage.app/o/gitpulseImages%2Fkmp%20contest%20video%2FKOTLIN%20MULTIPLATFORM%20CONTEST.mp4?alt=media&token=93d77f98-2387-445a-ae0c-3bdd1a2bf6f0)
 
 [![Kotlin](https://img.shields.io/badge/Kotlin-2.4.10-7F52FF.svg?style=flat&logo=kotlin&logoColor=white)](https://kotlinlang.org/)
 [![Compose Multiplatform](https://img.shields.io/badge/Compose_Multiplatform-1.12.0-4285F4.svg?style=flat&logo=jetpackcompose&logoColor=white)](https://www.jetbrains.com/lp/compose-multiplatform/)
