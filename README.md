@@ -43,7 +43,7 @@ Smallholder farmers across Sub-Saharan Africa and developing agricultural econom
 >
 > 🌐 **Live Web App Target**: [https://agripulse-web.vercel.app/](https://agripulse-web.vercel.app/)
 >
-> 🎥 **Contest Video Recording**: [Watch Demonstration Video MP4](https://firebasestorage.googleapis.com/v0/b/mindsetpulse-one.firebasestorage.app/o/gitpulseImages%2Fkmp%20contest%20video%2FKmp%20contest....mp4?alt=media&token=6b8cd1d2-b4cc-4e4f-b80b-31cce1b27276)
+> 🎥 **Video Recording**: [Watch Demonstration Video MP4](https://firebasestorage.googleapis.com/v0/b/mindsetpulse-one.firebasestorage.app/o/gitpulseImages%2Fkmp%20contest%20video%2FKmp%20contest....mp4?alt=media&token=6b8cd1d2-b4cc-4e4f-b80b-31cce1b27276)
 
 Below are application screenshots showcasing AgriPulse across platforms (Mobile and Desktop) in both Light and Dark themes:
 
